@@ -1,0 +1,84 @@
+#Adapted from  https://github.com/RobotLocomotion/gcs-science-robotics/blob/main/models/iiwa14_welded_gripper.yaml
+#10/17/2023
+
+# Model directive for kinova 
+directives:
+
+# Add kinova gen 3
+- add_model: # 15 links # 14 joints # 9 col geoms
+    name: kinova
+    file: package://test_assets/kinova_sens.urdf
+- add_weld: #1 joint
+    parent: world
+    child: kinova::base_link
+
+# Add Gripper
+- add_model: #9 links #8 joints #9 col geoms
+    name: robotiq
+    file: package://test_assets/robotiq_2f85_description_box_welded_fingers.urdf
+- add_weld: # 1joint
+    parent: kinova::end_effector_link
+    child: robotiq::robotiq_85_base_link
+
+# Add table
+- add_model: #1 link 
+    name: table
+    file: package://test_assets/table.urdf
+
+- add_frame: #1 link 1#joint
+    name: table_origin
+    X_PF:
+      base_frame: world
+      translation: [0.4, 0.0, 0.0]
+      rotation: !Rpy { deg: [0., 0., 00]}
+
+- add_weld: #1 joint
+    parent: table_origin
+    child: table::table_body
+
+- add_frame:  # 1 link #1 joint
+    name: cam_tripod_origin_0
+    X_PF:
+      base_frame: world
+      translation: [0.6, 0.66, 0.0]
+      rotation: !Rpy { deg: [0., 0., 00]}
+
+- add_model: #1link #0 joints #8 col geoms
+    name: cam_tripod_0
+    file: package://test_assets/camera_and_tripod.urdf
+
+- add_weld: #1 joint
+    parent: cam_tripod_origin_0
+    child: cam_tripod_0::camera_tripod_link
+
+- add_frame: #1link #1joint 
+    name: cam_tripod_origin_1
+    X_PF:
+      base_frame: world
+      translation: [0.54, -1.04, 0.0]
+      rotation: !Rpy { deg: [0., 0., 00]}
+
+- add_model: #1 link #8 geoms
+    name: cam_tripod_1
+    file: package://test_assets/camera_and_tripod.urdf
+
+- add_weld: #1joint
+    parent: cam_tripod_origin_1
+    child: cam_tripod_1::camera_tripod_link
+
+- add_frame: #1 link # 1joint 
+    name: wall
+    X_PF:
+      base_frame: world
+      translation: [-.5, 0, 0.0]
+      rotation: !Rpy { deg: [0., 0., 00]}
+
+- add_model: #1 link #1 geom
+    name: box_to_protect_pete
+    file: package://test_assets/box.urdf
+
+- add_weld: #1 joint
+    parent: wall
+    child: box_to_protect_pete::box_link
+
+# 35 + 1 links # 33 joints   #26 geoms

@@ -1,0 +1,16 @@
+bazel-*
+MODULE.bazel.*
+*.pyc
+*.pyo
+tmp/*
+.vscode
+*.egg-info*
+dist/*
+build/*
+*__pycache__*
+*.log
+*sqlite*
+*.nsys*
+*.venv
+*poetry.lock
+examples/tmp/*

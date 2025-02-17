@@ -1,0 +1,32 @@
+#Adapted from  https://github.com/RobotLocomotion/gcs-science-robotics/blob/main/models/iiwa14_welded_gripper.yaml
+#10/17/2023
+
+# Model directive for kinova 
+directives:
+
+# Add kinova gen 3 # 15 links 14 joints
+- add_model:
+    name: kinova
+    file: package://test_assets/kinova_sens.urdf
+- add_weld: #1 joint
+    parent: world
+    child: kinova::base_link
+
+# Add table
+- add_model: #1link no joint
+    name: table
+    file: package://test_assets/table.urdf
+
+- add_frame:  #1 link #1 joint
+    name: table_origin
+    X_PF:
+      base_frame: world
+      translation: [0.4, 0.0, 0.0]
+      rotation: !Rpy { deg: [0., 0., 00]}
+
+- add_weld: #1 joint
+    parent: table_origin
+    child: table::table_body
+
+
+#total, expect 17+1 links, 17 joints

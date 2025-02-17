@@ -1,0 +1,119 @@
+<?xml version="1.0"?>
+<robot name="movable_block_with_obstacles">
+
+  <!-- Movable block -->
+  <link name="movable_block">
+    <visual>
+      <geometry>
+        <box size="0.2 0.3 0.1"/>
+      </geometry>
+      <material name="blue">
+        <color rgba="0 0 1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.2 0.3 0.1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="1"/>
+      <inertia ixx="0.00375" ixy="0" ixz="0" iyy="0.00283" iyz="0" izz="0.00575"/>
+    </inertial>
+  </link>
+
+  <!-- Joint for X movement -->
+  <joint name="x_slider" type="prismatic">
+    <parent link="world"/>
+    <child link="x_link"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-0.7" upper="0.7" effort="1000" velocity="1000"/>
+  </joint>
+
+  <link name="x_link"/>
+
+  <!-- Joint for Y movement -->
+  <joint name="y_slider" type="prismatic">
+    <parent link="x_link"/>
+    <child link="y_link"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-0.7" upper="0.7" effort="1000" velocity="1000"/>
+  </joint>
+
+  <link name="y_link"/>
+
+  <!-- Joint for Z movement -->
+  <joint name="z_slider" type="prismatic">
+    <parent link="y_link"/>
+    <child link="z_link"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-0.1" upper="0.7" effort="1000" velocity="1000"/>
+  </joint>
+
+  <link name="z_link"/>
+
+  <!-- Joint for pitch rotation -->
+  <joint name="pitch" type="revolute">
+    <parent link="z_link"/>
+    <child link="pitch_link"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-3.14" upper="3.14" effort="1000" velocity="1000"/>
+  </joint>
+
+  <link name="pitch_link"/>
+
+  <!-- Joint for yaw rotation -->
+  <joint name="yaw" type="revolute">
+    <parent link="pitch_link"/>
+    <child link="movable_block"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-3.14" upper="3.14" effort="1000" velocity="1000"/>
+  </joint>
+
+  <!-- Static block obstacle -->
+  <link name="static_block">
+    <visual>
+      <geometry>
+        <box size="0.4 0.2 0.6"/>
+      </geometry>
+      <material name="red">
+        <color rgba="1 0 0 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.4 0.2 0.6"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="static_block_joint" type="fixed">
+    <parent link="world"/>
+    <child link="static_block"/>
+    <origin xyz="0.3 0.3 0.3"/>
+  </joint>
+
+  <!-- Static sphere obstacle -->
+  <link name="static_sphere">
+    <visual>
+      <geometry>
+        <sphere radius="0.25"/>
+      </geometry>
+      <material name="green">
+        <color rgba="0 1 0 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <sphere radius="0.25"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="static_sphere_joint" type="fixed">
+    <parent link="world"/>
+    <child link="static_sphere"/>
+    <origin xyz="-0.3 -0.3 0.25"/>
+  </joint>
+
+</robot>

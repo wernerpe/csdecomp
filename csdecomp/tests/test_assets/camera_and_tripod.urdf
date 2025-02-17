@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<robot name="camera_and_tripod">
+  <link name="camera_tripod_link">
+    <collision name="cam_box">
+      <origin xyz="0 0 0.5" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.06 0.06 1"/>
+      </geometry>
+    </collision>
+  </link>
+</robot>

@@ -1,0 +1,18 @@
+[tool.poetry]
+package-mode = false
+name = "csd_examples"
+version = "0.1.0"
+description = "CSDecomp examples"
+authors = ["Peter Werner <wernerpe@mit.edu>"]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.11"
+drake = "^1.28.0"
+numpy = "^1.25.2"
+ipywidgets = "8.1.2"
+jupyter = "^1.1.1"
+cspace_utils = {git = "git@github.com:wernerpe/cspace_utils.git", branch = "main"}
+pycsdecomp = {path = "../bazel-bin/csdecomp/src/pybind/pycsdecomp/pycsdecomp-0.1-cp310-none-manylinux2014_x86_64.whl"}
+scipy = ">=1.14.1"
+pymcubes = "^0.1.6"
+networkx = ">= 3.4.2"

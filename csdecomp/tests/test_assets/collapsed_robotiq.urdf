@@ -1,0 +1,135 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot name="robotiq_arg85_description">
+  <link name="robotiq_85_base_link">
+    <inertial>
+      <origin xyz="0.00021987 -2.3546E-10 0.030163" rpy="0 0 0" />
+      <mass value="0.30915" />
+      <inertia ixx="0.00028972" ixy="-5.7879E-10" ixz="-1.8543E-06" iyy="0.00030737" iyz="1.682E-12" izz="0.00019914" />
+    </inertial>
+    <visual name="robotiq_85_base_link_visual">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://robotiq_arg85_description/meshes/robotiq_85_base_link_fine.obj" />
+      </geometry>
+      <material name="">
+        <color rgba="0.1 0.1 0.1 1" />
+      </material>
+    </visual>
+    <collision name="robotiq_85_base_link_collision">
+      <geometry>
+	    <box size="0.086887 0.077000 0.102888" /> 
+      </geometry>
+		<origin xyz="0.0 1.7427101428602043e-12 0.047443750551989516" rpy="0 0 0" />
+    </collision>
+  <visual name="left_outer_knuckle_visual">
+      <origin xyz="0.0306011444260539 0.0 0.0627920162695395" rpy="0.0 -0.0 0.0" />
+      <geometry>
+        <mesh filename="package://robotiq_arg85_description/meshes/outer_knuckle_fine.obj" />
+      </geometry>
+      <material name="">
+        <color rgba="0.1 0.1 0.1 1" />
+      </material>
+    </visual>
+    <visual name="left_outer_finger_visual">
+      <origin xyz="0.062292188652708205 0.0 0.06085805251229345" rpy="0.0 -0.0 0.0" />
+      <geometry>
+        <mesh filename="package://robotiq_arg85_description/meshes/outer_finger_fine.obj" />
+      </geometry>
+      <material name="">
+        <color rgba="0.1 0.1 0.1 1" />
+      </material>
+    </visual>
+    <visual name="left_inner_knuckle_visual">
+      <origin xyz="0.0127000000001501 0.0 0.0693074999999639" rpy="0.0 -0.0 0.0" />
+      <geometry>
+        <mesh filename="package://robotiq_arg85_description/meshes/inner_knuckle_fine.obj" />
+      </geometry>
+      <material name="">
+        <color rgba="0.1 0.1 0.1 1" />
+      </material>
+    </visual>
+    
+  <visual name="left_inner_finger_visual">
+      <origin xyz="0.0472853108614441 0.0 0.1148045193817614" rpy="0.0 -0.0 0.0" />
+      <geometry>
+        <mesh filename="package://robotiq_arg85_description/meshes/inner_finger_fine.obj" />
+      </geometry>
+      <material name="">
+        <color rgba="0.1 0.1 0.1 1" />
+      </material>
+    </visual>
+    <visual name="right_inner_knuckle_visual">
+      <origin xyz="-0.0126999999998499 0.0 0.0693075000000361" rpy="0.0 -0.0 3.14159265358979" />
+      <geometry>
+        <mesh filename="package://robotiq_arg85_description/meshes/inner_knuckle_fine.obj" />
+      </geometry>
+      <material name="">
+        <color rgba="0.1 0.1 0.1 1" />
+      </material>
+    </visual>
+    
+  <visual name="right_inner_finger_visual">
+      <origin xyz="-0.0468060475455905 1.1019968013572213e-16 0.1151648878542049" rpy="0.0 -0.0 3.14159265358979" />
+      <geometry>
+        <mesh filename="package://robotiq_arg85_description/meshes/inner_finger_fine.obj" />
+      </geometry>
+      <material name="">
+        <color rgba="0.1 0.1 0.1 1" />
+      </material>
+    </visual>
+    <visual name="right_outer_knuckle_visual">
+      <origin xyz="-0.0306011444258893 0.0 0.0627920162695395" rpy="0.0 -0.0 3.14159265358979" />
+      <geometry>
+        <mesh filename="package://robotiq_arg85_description/meshes/outer_knuckle_fine.obj" />
+      </geometry>
+      <material name="">
+        <color rgba="0.1 0.1 0.1 1" />
+      </material>
+    </visual>
+    <visual name="right_outer_finger_visual">
+      <origin xyz="-0.0623107353626139 1.0245651519060432e-16 0.061190659774070795" rpy="0.0 -0.0 3.14159265358979" />
+      <geometry>
+        <mesh filename="package://robotiq_arg85_description/meshes/outer_finger_fine.obj" />
+      </geometry>
+      <material name="">
+        <color rgba="0.1 0.1 0.1 1" />
+      </material>
+    </visual>
+    <collision name="left_outer_knuckle_collision">
+      <geometry>
+	    <box size="0.047772 0.026000 0.024426" /> 
+      </geometry>
+		<origin xyz="0.04600434343534414 5.312399825596614e-13 0.06610261563363475" rpy="0.0 -0.0 0.0" />
+    </collision>
+  <collision name="left_outer_finger_collision">
+      <geometry>
+	    <box size="0.016872 0.029000 0.061409" /> 
+      </geometry>
+		<origin xyz="0.06373946230327353 1.0560007729365495e-12 0.08457393181239457" rpy="0.0 -0.0 0.0" />
+    </collision>
+  <collision name="left_inner_finger_collision">
+      <geometry>
+	    <box size="0.033703 0.024000 0.058515" /> 
+      </geometry>
+		<origin xyz="0.05533506808082554 -2.3713496444255355e-13 0.13054714588930033" rpy="0.0 -0.0 0.0" />
+    </collision>
+  <collision name="right_inner_finger_collision">
+      <geometry>
+	    <box size="0.033703 0.024000 0.058515" /> 
+      </geometry>
+		<origin xyz="-0.05485580476497194 2.372711736058918e-13 0.13090751436174386" rpy="0.0 -0.0 3.14159265358979" />
+    </collision>
+  <collision name="right_outer_knuckle_collision">
+      <geometry>
+	    <box size="0.047772 0.026000 0.024426" /> 
+      </geometry>
+		<origin xyz="-0.046004343435179534 -5.311902134504846e-13 0.06610261563363475" rpy="0.0 -0.0 3.14159265358979" />
+    </collision>
+  <collision name="right_outer_finger_collision">
+      <geometry>
+	    <box size="0.016872 0.029000 0.061409" /> 
+      </geometry>
+		<origin xyz="-0.06375800901317923 -1.0558936401511712e-12 0.08490653907417192" rpy="0.0 -0.0 3.14159265358979" />
+    </collision>
+  </link>
+  </robot>

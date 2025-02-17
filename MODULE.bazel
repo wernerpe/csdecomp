@@ -1,0 +1,31 @@
+###############################################################################
+# Bazel now uses Bzlmod by default to manage external dependencies.
+# Please consider migrating your external dependencies from WORKSPACE to MODULE.bazel.
+#
+# For more details, please check https://github.com/bazelbuild/bazel/issues/18958
+###############################################################################
+bazel_dep(name = "rules_cc", version = "0.0.16")
+bazel_dep(name = "rules_python", version = "0.40.0")
+bazel_dep(name = "rules_cuda", version = "0.2.1")
+bazel_dep(name = "pybind11_bazel", version = "2.12.0")
+
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+
+# This version configures the Python version that's compatible with the binding
+python.toolchain(python_version = "3.10")
+use_repo(python, "python_versions")
+
+# pick a specific version (this is optional an can be skipped)
+archive_override(
+    module_name = "rules_cuda",
+    urls = ["https://github.com/wernerpe/rules_cuda/archive/1f8d4a0733226b246e799f3b17e0c76875a7997b.tar.gz"],
+    strip_prefix = "rules_cuda-1f8d4a0733226b246e799f3b17e0c76875a7997b",
+    integrity = "sha256-sjOk7TddjzFer8tqbkWEZEJV+oZTXvQBTop37b6i8pE=",
+)
+
+cuda = use_extension("@rules_cuda//cuda:extensions.bzl", "toolchain")
+cuda.local_toolchain(
+    name = "local_cuda",
+    toolkit_path = "",
+)
+use_repo(cuda, "local_cuda")

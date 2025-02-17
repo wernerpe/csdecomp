@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<robot name="table">
+  <link name="table_body">
+    <visual>
+      <geometry>
+        <mesh filename="table.obj"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 -0.1" rpy="0 0 0"/>
+      <geometry>
+        <box size="2.5 2.5 0.2"/>
+      </geometry>
+    </collision>
+  </link>
+</robot>
