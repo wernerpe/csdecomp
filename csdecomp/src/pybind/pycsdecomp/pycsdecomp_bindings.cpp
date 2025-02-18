@@ -9,6 +9,13 @@
 namespace py = pybind11;
 
 PYBIND11_MODULE(pycsdecomp_bindings, m) {
+  m.doc() = R"pbdoc(
+    PyCSDecomp Python Bindings
+    --------------------------
+    
+    This module provides Python bindings for the CSDecomp library.
+
+  )pbdoc";
   add_plant_bindings(m);
   add_hpolyhedron_bindings(m);
   add_collision_checker_bindings(m);
