@@ -1,0 +1,80 @@
+/**
+ * @mainpage CSDecomp: Configuration Space Decomposition
+ * 
+ * @section intro Introduction
+ * CSDecomp is a Python package that implements GPU-accelerated algorithms for computing 
+ * convex decompositions of robot configuration spaces. The package provides implementations of:
+ * 
+ * - Dynamic Roadmaps (DRMs)
+ * - Edge Inflation Zero-Order (EI-ZO) algorithm
+ * 
+ * These algorithms are implemented in CUDA/C++ and exposed through Python bindings, as described
+ * in our paper "Superfast Configuration-Space Convex Set Computation on GPUs for Online Motion Planning".
+ *
+ * @section features Key Features
+ * - GPU-accelerated configuration space decomposition
+ * - CUDA/C++ core with Python bindings
+ * - Implementation of Dynamic Roadmaps (DRMs)
+ * - Implementation of Edge Inflation Zero-Order (EI-ZO) algorithm
+ * - High-performance design for online motion planning
+ * 
+ * @section requirements System Requirements
+ * - CUDA Toolkit (tested with CUDA 12.6)
+ * - Compatible NVIDIA display driver (tested with driver 560)
+ * - Python 3.10
+ * - Ubuntu 22.04 (tested platform)
+ * - Bazel build system
+ * - Clang-format
+ *
+ * @section install Installation
+ * The installation currently requires building from source using Bazel:
+ * 
+ * 1. Install CUDA toolchain from NVIDIA's website
+ * 2. Install required tools:
+ * @code{.bash}
+ * sudo apt install bazelisk && sudo apt-get install clang-format
+ * @endcode
+ * 
+ * 3. Build and test:
+ * @code{.bash}
+ * bazel test ...
+ * @endcode
+ * 
+ * @note The build process outputs a pip-installable wheel at 
+ * `bazel-bin/csdecomp/src/pybind/pycsdecomp`
+ *
+ * @section usage Basic Usage
+ * @code{.python}
+ * import sys
+ * sys.path.append('PATH_TO_REPO/bazel-bin/csdecomp/src/pybind/pycsdecomp')
+ * import pycsdecomp as csd
+ * @endcode
+ *
+ * @section citation Citation
+ * If you find this code useful, please cite our paper:
+ * @code
+ * @article{werner2024superfast,
+ *   title={Superfast Configuration-Space Convex Set Computation on GPUs for Online Motion Planning},
+ *   author={Werner, Peter and Cheng, Richard and Stewart, Tom and Tedrake, Russ and Rus, Daniela},
+ *   journal={TBD},
+ *   year={2025}
+ * }
+ * @endcode
+ *
+ * @section contribute Contributing
+ * Contributions are welcome! Please refer to the GitHub repository for contribution guidelines.
+ *
+ * @section development Development Notes
+ * - The unit tests demonstrate intended code usage
+ * - Python bindings closely follow the C++ syntax
+ * - Type hints are available through pystubs
+ * - VSCode configuration files are provided for cpp unit test debugging
+ *
+ * @section todo Future Improvements
+ * - Improve forward kinematics efficiency
+ *   - Remove fixed joints from evaluation
+ *   - Switch to 3x4 transform representation
+ * - Add support for other Python versions
+ * - Add support for cylinder and capsule collision geometries
+ * - Complete python documentation
+ */

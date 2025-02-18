@@ -96,31 +96,6 @@ pybind_extension(
     ],
 )
 
-# genrule(
-#     name = "copy_init_and_generate_stubs",
-#     srcs = [
-#         "__init__.py",
-#         "py.typed",
-#         ":pycsdecomp_bindings",
-#         "generate_stubs.py",
-#         "drake_csd_bridge.py",
-#     ],
-#     outs = [
-#         "pycsdecomp/__init__.py",
-#         "pycsdecomp/py.typed",
-#         "pycsdecomp/drake_csd_bridge.py",
-#         "pycsdecomp/pycsdecomp_bindings.so",
-#         "pycsdecomp/pycsdecomp_bindings.pyi",
-#     ],
-#     cmd = """
-#         mkdir -p $(RULEDIR)/pycsdecomp && \
-#         cp $(location __init__.py) $(location py.typed)\
-#         $(location drake_csd_bridge.py) \
-#         $(location :pycsdecomp_bindings) $(RULEDIR)/pycsdecomp/ && \
-#         PYTHONPATH=$(RULEDIR) python3 $(location generate_stubs.py) $(RULEDIR)/pycsdecomp
-#     """,
-# )
-
 genrule(
     name = "copy_init_and_generate_stubs",
     srcs = [

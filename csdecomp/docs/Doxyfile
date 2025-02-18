@@ -1,0 +1,10 @@
+OUTPUT_DIRECTORY       = ./doxyoutput
+GENERATE_XML          = YES
+FILE_PATTERNS        = *.h *.hpp *.cpp *.cu *.dox
+INPUT                = ../src \
+                      .
+RECURSIVE            = YES
+EXTRACT_ALL          = YES
+USE_MDFILE_AS_MAINPAGE = mainpage.dox
+PROJECT_NAME         = "CSDecomp"
+PROJECT_BRIEF        = "GPU-accelerated Configuration Space Decomposition"
