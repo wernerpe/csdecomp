@@ -2,6 +2,7 @@
 
 CSDecomp is a Python package that implements GPU-accelerated algorithms for computing convex decompositions of robot configuration spaces. The package provides implementations of Dynamic Roadmaps (DRMs) and the Edge Inflation Zero-Order (EI-ZO) algorithm in cuda/cpp as described in our paper "Superfast Configuration-Space Convex Set Computation on GPUs for Online Motion Planning".
 
+Contributions are welcome!
 ## Installation
 Currently, the installation requires building from source using bazel. I have only tested the software using python 3.10 and building on Ubuntu22.04.
 
@@ -39,6 +40,7 @@ If you want to try to change python version, it will need to be changed here:
 2. https://github.com/wernerpe/cuciv0/blob/feature/drake_compat_layer/MODULE.bazel#L15
 
 In general, the unit tests demonstrate how the code should be used. The python bindings closely follow the C++ syntax.
+There is an experimental documentation that can be built with doxygen `cd csdecomp/docs/ && doxygen Doxyfile`.
 
 # Running the Python Examples
 
@@ -95,4 +97,5 @@ Drake slow to launch and returning LCM test failed:
 Running list of TODOs
 * Improve forward kinematics efficiency by removing fixed joints from the evaluation and switching to 3x4 representation of the transforms
 * Handle other python versions gracefully
-* Handle Cylinder and Capsule collision geometries
+* Handle cylinder and capsule collision geometries
+* Finish Python documentation using Sphinx

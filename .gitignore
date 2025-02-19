@@ -14,3 +14,4 @@ build/*
 *.venv
 *poetry.lock
 examples/tmp/*
+*doxyoutput*
