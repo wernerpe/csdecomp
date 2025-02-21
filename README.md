@@ -12,12 +12,17 @@ Currently, the installation requires building from source using bazel. I have on
 
     (Note: You will need to make sure that your display driver is compatible with the cuda version installed. Otherwise the code might compile but all of the kernel launches will do nothing.)
 
-2. Install bazel and clang-fromat if needed:
+2. Install bazel via bazelisk and clang-fromat if needed:
 
-    `sudo apt install bazelisk && sudo apt-get install clang-format`
+    [bazelisk instructions ](https://github.com/bazelbuild/bazelisk/blob/master/README.md)
 
+    `sudo apt-get install clang-format`
 
-3. Build and test the code to ensure that everything was installed correctly:
+3. Make sure you have python3.10 with dev dependencies installed
+
+    `test -f /usr/include/python3.10/Python.h && echo "exists" || echo "not found"`
+
+4. Build and test the code to ensure that everything was installed correctly:
     
     From the root of this repository run `bazel test ...`
 
