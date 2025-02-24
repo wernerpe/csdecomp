@@ -450,7 +450,6 @@ CollisionGeometry URDFParser::parseCollisionGeometry(
         shape_element->QueryFloatAttribute("length", &length);
         col_obj.dimensions = Eigen::Vector3f(radius, length, radius);
       } else if (shape_name == "capsule") {
-        throw std::runtime_error("capsule not yet implemented");
         col_obj.type = ShapePrimitive::CAPSULE;
         float radius, length;
         shape_element->QueryFloatAttribute("radius", &radius);

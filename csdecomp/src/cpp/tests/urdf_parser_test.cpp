@@ -524,6 +524,25 @@ GTEST_TEST(PlantTest, TestPlant) {
   EXPECT_EQ(col_geoms.at(idx_plant).type, ShapePrimitive::BOX);
 }
 
+GTEST_TEST(ParserTest, ParseCapsules) {
+  std::string prefix = "csdecomp/tests/test_assets/";
+  URDFParser parser;
+  std::string tmp = prefix + "movable_capsule.urdf";
+  EXPECT_TRUE(parser.parseURDF(tmp));
+  Plant p = parser.buildPlant();
+  int index1 =
+      p.getSceneCollisionGeometryIndexByName("movable_capsule::col_geom::1");
+  int index2 =
+      p.getSceneCollisionGeometryIndexByName("static_capsule::col_geom::1");
+  std::vector<CollisionGeometry> col_geoms = p.getSceneCollisionGeometries();
+  CollisionGeometry movable = col_geoms.at(index1);
+  CollisionGeometry static_geom = col_geoms.at(index2);
+  EXPECT_FLOAT_EQ(movable.dimensions[0], 0.1);
+  EXPECT_FLOAT_EQ(movable.dimensions[1], 0.3);
+  EXPECT_FLOAT_EQ(static_geom.dimensions[0], 0.2);
+  EXPECT_FLOAT_EQ(static_geom.dimensions[1], 0.5);
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

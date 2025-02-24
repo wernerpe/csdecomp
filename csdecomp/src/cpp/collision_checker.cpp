@@ -81,6 +81,9 @@ bool checkCollisionFreeVoxels(
   return true;
 }
 
+// capsule, capsule -> compute closest distance between the linesegments, if
+// less than radius, there is a collision. capsule, sphere -> compute closest
+// distance to line segment compare to radius capsule, box
 bool pairCollisionFree(const CollisionGeometry &geomA,
                        const Eigen::Matrix4f &X_W_LA,
                        const CollisionGeometry &geomB,
