@@ -99,9 +99,8 @@ bool pairCollisionFree(const CollisionGeometry &geomA,
   Eigen::Vector3f posB = X_W_GEOMB.block<3, 1>(0, 3);
 
   // Check for unsupported shape primitives
-  if (geomA.type == CYLINDER || geomA.type == CAPSULE ||
-      geomB.type == CYLINDER || geomB.type == CAPSULE) {
-    throw std::runtime_error("Cylinders and capsules are not supported yet.");
+  if (geomA.type == CYLINDER || geomB.type == CYLINDER) {
+    throw std::runtime_error("Cylinders are not supported yet.");
   }
 
   // Sphere-Sphere collision
@@ -134,6 +133,11 @@ bool pairCollisionFree(const CollisionGeometry &geomA,
                             posB, geomB.dimensions[0]);
   }
 
+  if (geomA.type == CAPSULE && geomB.type == CAPSULE) {
+    return cppCapsuleCapsule(geomA.dimensions, X_W_GEOMA, geomB.dimensions,
+                             X_W_GEOMB);
+  }
+  return true;
   // Should never reach here if all cases are handled
   throw std::runtime_error("Unexpected geometry types encountered.");
 }

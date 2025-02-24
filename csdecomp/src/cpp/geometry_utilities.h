@@ -6,7 +6,6 @@ namespace csdecomp {
 
 namespace {
 constexpr float line_seg_cutoff = 1e-6;
-}
 
 Eigen::Vector3f closestPointOnLineSegment(const Eigen::Vector3f& line_start,
                                           const Eigen::Vector3f& line_end,
@@ -17,16 +16,101 @@ Eigen::Vector3f closestPointOnLineSegment(const Eigen::Vector3f& line_start,
     return line_start;
   }
   const double t = (point - line_start).dot(dir) / squared_norm;
-  return line_start + std::clamp<double>(t, 0, 1) * dir;
+  return line_start + std::clamp<float>(t, 0, 1) * dir;
 }
 
-// TODO capsule sphere, capsule capsule, capsule box
+float distanceBetweenLineSegments(const Eigen::Vector3f& p1,
+                                  const Eigen::Vector3f& q1,
+                                  const Eigen::Vector3f& p2,
+                                  const Eigen::Vector3f& q2) {
+  const Eigen::Vector3f dir_1 = q1 - p1;
+  const Eigen::Vector3f dir_2 = q2 - p2;
+  // Get the segments' parameters
+  const Eigen::Vector3f r = p1 - p2;
+
+  const float a = dir_1.dot(dir_1);  // Length squared of segment 1
+  const float b = dir_1.dot(dir_2);  // Dot product of the two directions
+  const float c = dir_2.dot(dir_2);  // Length squared of segment 2
+  const float d = dir_1.dot(r);
+  const float e = dir_2.dot(r);
+
+  const float f = a * c - b * b;  // Denominator
+
+  // Parameters to compute the closest points
+  float s = 0.0f;  // Parameter for first segment
+  float t = 0.0f;  // Parameter for second segment
+
+  // Compute the closest points parameters
+  if (f < line_seg_cutoff) {
+    // The lines are almost parallel
+    // Force using point p1, and find the closest point on segment 2
+    s = 0.0f;
+    t = (b > c ? d / b : e / c);  // Use the largest denominator
+  } else {
+    // Get the closest points on the infinite lines
+    s = (b * e - c * d) / f;
+    t = (a * e - b * d) / f;
+  }
+
+  // Clamp the parameters to the segments
+  s = std::clamp<float>(s, 0, 1);
+
+  // Recompute t based on clamped s
+  t = b * s + e;
+  if (c > 0.0f) {
+    t /= c;
+  } else {
+    t = 0.0f;
+  }
+
+  // Clamp t to the segment
+  t = std::clamp<float>(t, 0, 1);
+
+  // Recompute s based on clamped t
+  if (a > 0.0f) {
+    s = (b * t - d) / a;
+    s = std::max(0.0f, std::min(1.0f, s));
+  }
+
+  // Compute the closest points on both segments
+  const Eigen::Vector3f closest_point_1 = p1 + dir_1 * s;
+  const Eigen::Vector3f closest_point_2 = p2 + dir_2 * t;
+
+  // Return the distance between these points
+  return (closest_point_1 - closest_point_2).norm();
+}
+}  // namespace
+
+// TODO capsule capsule, capsule box
+bool cppCapsuleCapsule(const Eigen::Vector3f& capADimensions,
+                       const Eigen::Matrix4f& X_W_GEOMA,
+                       const Eigen::Vector3f& capBDimensions,
+                       const Eigen::Matrix4f& X_W_GEOMB) {
+  Eigen::Matrix3f rot_A = X_W_GEOMA.block<3, 3>(0, 0);
+  Eigen::Vector3f pos_A = X_W_GEOMA.block<3, 1>(0, 3);
+  Eigen::Matrix3f rot_B = X_W_GEOMB.block<3, 3>(0, 0);
+  Eigen::Vector3f pos_B = X_W_GEOMB.block<3, 1>(0, 3); 
+
+  const Eigen::Vector3f cyl_base_A =
+      rot_A * Eigen::Vector3f(0, 0, -capADimensions[1] / 2) + pos_A;
+  const Eigen::Vector3f cyl_tip_A =
+      rot_A * Eigen::Vector3f(0, 0, capADimensions[1] / 2) + pos_A;
+  const Eigen::Vector3f cyl_base_B =
+      rot_B * Eigen::Vector3f(0, 0, -capADimensions[1] / 2) + pos_B;
+  const Eigen::Vector3f cyl_tip_B =
+      rot_B * Eigen::Vector3f(0, 0, capADimensions[1] / 2) + pos_B;
+  float dist_ls =
+      distanceBetweenLineSegments(cyl_base_A, cyl_tip_A, cyl_base_B, cyl_tip_B);
+  return dist_ls > capADimensions[0] + capBDimensions[0];
+}
+
 bool cppCapsuleSphere(const Eigen::Matrix4f& X_W_cap, const float capRadius,
                       const float capLength, const Eigen::Vector3f& spherePos,
                       const float sphereRadius) {
   Eigen::Matrix3f rot = X_W_cap.block<3, 3>(0, 0);
-  const Eigen::Vector3f cyl_base = rot * Eigen::Vector3f(0, 0, -capLength / 2);
-  const Eigen::Vector3f cyl_tip = rot * Eigen::Vector3f(0, 0, capLength / 2);
+  Eigen::Vector3f pos = X_W_cap.block<3, 1>(0, 3);
+  const Eigen::Vector3f cyl_base = rot * Eigen::Vector3f(0, 0, -capLength / 2) + pos;
+  const Eigen::Vector3f cyl_tip = rot * Eigen::Vector3f(0, 0, capLength / 2) + pos;
 
   // closest point to sphere center along capsule line segment
   const Eigen::Vector3f capsule_point =
