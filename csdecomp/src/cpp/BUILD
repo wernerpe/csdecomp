@@ -26,6 +26,17 @@ cc_library(
     deps = ["@eigen"],
 )
 
+cc_library(
+    name = "geometry_utilities",
+    srcs = [],
+    hdrs = ["geometry_utilities.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":collision_geometry",
+        "@eigen",
+    ],
+)
+
 #defines minimal functionality for evaluating FK
 cc_library(
     name = "minimal_kinematic_tree",
@@ -70,10 +81,13 @@ cc_library(
 cc_library(
     name = "collision_checker",
     srcs = ["collision_checker.cpp"],
-    hdrs = ["collision_checker.h"],
+    hdrs = [
+        "collision_checker.h",
+    ],
     visibility = ["//visibility:public"],
     deps = [
         ":collision_geometry",
+        ":geometry_utilities",
         ":kinematic_tree",
         ":minimal_plant",
         "@fmt",
