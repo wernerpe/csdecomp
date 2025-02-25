@@ -1,8 +1,9 @@
-load("@python//3.10:defs.bzl", compile_pip_requirements_3_10 = "compile_pip_requirements")
+# load("@python//:defs.bzl", "compile_pip_requirements")
 load("@rules_python//python:defs.bzl", "py_binary")
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@pip//:requirements.bzl", "requirement")
 
-compile_pip_requirements_3_10(
+compile_pip_requirements(
   name = "requirements_3_10",
   requirements_in=":requirements_3_10.in",
   requirements_txt=":requirements_3_10.txt",
@@ -15,6 +16,7 @@ py_binary(
   srcs = ["hello_world.py"],
   deps = [
     requirement("numpy"),
-    requirement("matplotlib")
+    requirement("matplotlib"),
+    requirement("PyGObject")
   ]
 )
