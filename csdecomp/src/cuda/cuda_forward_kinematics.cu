@@ -86,7 +86,6 @@ void executeForwardKinematicsKernel(float *transforms_flat_device,
   forwardKinematicsKernel<<<num_blocks, threads_per_block>>>(
       transforms_flat_device, configurations_device, num_configurations,
       tree_device);
-  // sync devices to flush printf buffer
 }
 
 void computeForwardKinematicsCuda(Eigen::MatrixXf *transforms,

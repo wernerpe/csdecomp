@@ -1,5 +1,6 @@
 #pragma once
 #include <Eigen/Dense>
+#include <limits>
 
 #include "collision_geometry.h"
 namespace csdecomp {
@@ -18,6 +19,10 @@ Eigen::Vector3f closestPointOnLineSegment(const Eigen::Vector3f& line_start,
   const double t = (point - line_start).dot(dir) / squared_norm;
   return line_start + std::clamp<float>(t, 0, 1) * dir;
 }
+
+float distanceLineSegmentBox(const Eigen::Vector3f& p1,
+                             const Eigen::Vector3f& q1,
+                             const Eigen::Vector3f& box_dimensions) {}
 
 float distanceBetweenLineSegments(const Eigen::Vector3f& p1,
                                   const Eigen::Vector3f& q1,
@@ -81,7 +86,56 @@ float distanceBetweenLineSegments(const Eigen::Vector3f& p1,
 }
 }  // namespace
 
-// TODO capsule capsule, capsule box
+// TODO capsule box
+bool cppCapsuleBox(const Eigen::Vector3f& capDimensions,
+                   const Eigen::Matrix4f& X_W_CAP,
+                   const Eigen::Vector3f& boxDimensions,
+                   const Eigen::Matrix4f& X_W_BOX) {
+  // THIS IS NOT EXACT, it is conservative
+
+  // Express the linesegment defining the capsule in the frame of the box
+  // 1. Compute X_BOX_CAP = (X_w_box)^-1X_w_Cap
+  Eigen::Matrix3f rot_cap_inv = X_W_CAP.block<3, 3>(0, 0).transpose();
+  Eigen::Vector3f pos_cap = X_W_CAP.block<3, 1>(0, 3);
+  Eigen::Matrix3f rot_box = X_W_BOX.block<3, 3>(0, 0);
+  Eigen::Vector3f pos_box = X_W_BOX.block<3, 1>(0, 3);
+  Eigen::Matrix3f rot_box_cap = rot_cap_inv * rot_box;
+  Eigen::Matrix3f pos_box_cap = rot_cap_inv * (pos_box - pos_cap);
+  Eigen::Vector3f cyl_base =
+      rot_box_cap * Eigen::Vector3f(0, 0, -capDimensions[1] / 2) + pos_box_cap;
+  Eigen::Vector3f cyl_tip =
+      rot_box_cap * Eigen::Vector3f(0, 0, capDimensions[1] / 2) + pos_box_cap;
+  Eigen::Vector3f boxHalfExtents = boxDimensions * 0.5f;
+  Eigen::Vector3f min = -boxHalfExtents;
+  Eigen::Vector3f max = boxHalfExtents;
+  float near = std::numeric_limits<float>::min();
+  float far = std::numeric_limits<float>::max();
+
+https://stackoverflow.com/questions/3106666/intersection-of-line-segment-with-axis-aligned-box-in-c-sharp#3115514
+  /*
+            +Z
+            ^
+       ---- |------
+     /      |     /|
+    /----------- / |
+   |        +---|----> +Y
+   | _ ___ /___ |/
+          /
+         /
+        v
+      +X
+
+      3D XYZ Coordinate System
+*/
+  // Linesegment goes from p to q
+  Eigen::Vector3f pProj;
+  Eigen::Vector3f qProj;
+  pProj.z() = boxHalfExtents[2];
+  qProj.z() = boxHalfExtents[2];
+  // crop XY planes
+  // top plane
+}
+
 bool cppCapsuleCapsule(const Eigen::Vector3f& capADimensions,
                        const Eigen::Matrix4f& X_W_GEOMA,
                        const Eigen::Vector3f& capBDimensions,
@@ -89,7 +143,7 @@ bool cppCapsuleCapsule(const Eigen::Vector3f& capADimensions,
   Eigen::Matrix3f rot_A = X_W_GEOMA.block<3, 3>(0, 0);
   Eigen::Vector3f pos_A = X_W_GEOMA.block<3, 1>(0, 3);
   Eigen::Matrix3f rot_B = X_W_GEOMB.block<3, 3>(0, 0);
-  Eigen::Vector3f pos_B = X_W_GEOMB.block<3, 1>(0, 3); 
+  Eigen::Vector3f pos_B = X_W_GEOMB.block<3, 1>(0, 3);
 
   const Eigen::Vector3f cyl_base_A =
       rot_A * Eigen::Vector3f(0, 0, -capADimensions[1] / 2) + pos_A;
@@ -109,8 +163,10 @@ bool cppCapsuleSphere(const Eigen::Matrix4f& X_W_cap, const float capRadius,
                       const float sphereRadius) {
   Eigen::Matrix3f rot = X_W_cap.block<3, 3>(0, 0);
   Eigen::Vector3f pos = X_W_cap.block<3, 1>(0, 3);
-  const Eigen::Vector3f cyl_base = rot * Eigen::Vector3f(0, 0, -capLength / 2) + pos;
-  const Eigen::Vector3f cyl_tip = rot * Eigen::Vector3f(0, 0, capLength / 2) + pos;
+  const Eigen::Vector3f cyl_base =
+      rot * Eigen::Vector3f(0, 0, -capLength / 2) + pos;
+  const Eigen::Vector3f cyl_tip =
+      rot * Eigen::Vector3f(0, 0, capLength / 2) + pos;
 
   // closest point to sphere center along capsule line segment
   const Eigen::Vector3f capsule_point =
