@@ -3,7 +3,7 @@ load("@rules_python//python:defs.bzl", "py_test")
 load("//:tools/lint.bzl", "add_lint_tests")
 load("//:tools/cc_with_system_python.bzl", "cc_binary_with_system_python")
 load("//:tools/embedded_py.bzl", "cc_py_library")
-load("@//:tools/my_python_version.bzl", "get_my_python_copts")
+load("@//:tools/my_python_version.bzl", "get_my_system_python_copts")
 
 add_lint_tests()
 
@@ -14,9 +14,9 @@ cc_library(
     includes = ["."],
     visibility = ["//visibility:public"],
     deps = [
-        "@eigen",
         "//csdecomp/src/cpp:hpolyhedron",
         "//csdecomp/third_party:matplotlib_cpp",
+        "@eigen",
     ],
 )
 
@@ -27,9 +27,9 @@ cc_library(
     includes = ["."],
     visibility = ["//visibility:public"],
     deps = [
-        "@eigen",
         "//csdecomp/src/cpp:hpolyhedron",
         "//csdecomp/third_party:matplotlib_cpp_interactive",
+        "@eigen",
     ],
 )
 
@@ -41,7 +41,6 @@ py_test(
     ],
 )
 
-
 cc_binary(
     name = "test_plot",
     srcs = ["test_matplotlib.cpp"],
@@ -51,6 +50,6 @@ cc_binary(
 cc_binary_with_system_python(
     name = "test_plot_interactive",
     srcs = ["test_matplotlib.cpp"],
+    copts = get_my_system_python_copts(),
     deps = [":plotting_utils_interactive"],
-    copts = get_my_python_copts()
 )

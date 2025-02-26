@@ -120,7 +120,7 @@ cc_test(
         "//csdecomp/tests:plotting_utils",
         "@com_google_googletest//:gtest_main",
         "@rules_python//python/cc:current_py_cc_headers",
-        "@rules_python//python/cc:current_py_cc_libs"
+        "@rules_python//python/cc:current_py_cc_libs",
     ],
 )
 
