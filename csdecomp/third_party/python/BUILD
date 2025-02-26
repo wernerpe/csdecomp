@@ -4,9 +4,9 @@ load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@pip//:requirements.bzl", "requirement")
 
 compile_pip_requirements(
-  name = "requirements_3_10",
-  requirements_in=":requirements_3_10.in",
-  requirements_txt=":requirements_3_10.txt",
+  name = "requirements",
+  requirements_in=":requirements.in",
+  requirements_txt=":requirements.txt",
   extra_args=["--allow-unsafe"],
   timeout="eternal",
 )
