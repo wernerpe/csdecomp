@@ -196,7 +196,7 @@ TEST_F(HNRSampleTest, PlotCudaSamples) {
   }
   EXPECT_TRUE(found_sample_close_to_adversarial_point);
 
-  if (true || std::getenv("BAZEL_TEST") == nullptr) {
+  if (std::getenv("BAZEL_TEST") == nullptr) {
     idx = 0;
     for (auto s : samples_poly) {
       setupTestPlottingEnv();

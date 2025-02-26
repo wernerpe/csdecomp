@@ -3,7 +3,7 @@
 
 We use a hermetic python instance so that we have the same python version running everywhere. In
 order to bring in pip packages, add your desired package and version to "requirements.in". Then run
-`bazel run //third_party/python:requirements.update` to update `requirements.txt`.
+`bazel run //csdecomp/third_party/python:requirements.update` to update `requirements.txt`.
 
 # Using a Pip Dependency
 

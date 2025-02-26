@@ -76,14 +76,6 @@ http_archive(
 )
 
 http_archive(
-    name = "matplotlib_cpp",
-    build_file = "@//csdecomp/third_party:matplotlib_cpp.BUILD",
-    integrity = "sha256-0GHFbVPMI1XhVDGYo4maNhSV9cinK5OCBKUwdhTKiD8=",
-    strip_prefix = "matplotlib-cpp-ef0383f1315d32e0156335e10b82e90b334f6d9f",
-    urls = ["https://github.com/lava/matplotlib-cpp/archive/ef0383f1315d32e0156335e10b82e90b334f6d9f.zip"],
-)
-
-http_archive(
     name = "com_google_protobuf",
     integrity = "sha256-O9eCiqWvSxO5nBkeix6ITr+prTcbDOJkYF00fxNdJWg=",
     strip_prefix = "protobuf-3.19.4",
