@@ -169,19 +169,19 @@ class KinematicTree {
    * @brief Gets the number of links in the kinematic tree.
    * @return The number of links.
    */
-  const int numLinks() const;
+  int numLinks() const;
 
   /**
    * @brief Gets the number of joints in the kinematic tree.
    * @return The number of joints.
    */
-  const int numJoints() const;
+  int numJoints() const;
 
   /**
    * @brief Gets the number of configuration variables in the kinematic tree.
    * @return The number of configuration variables.
    */
-  const int numConfigurationVariables() const;
+  int numConfigurationVariables() const;
 
  private:
   std::vector<Link> links_;

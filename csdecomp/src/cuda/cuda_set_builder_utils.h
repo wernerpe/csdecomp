@@ -163,7 +163,7 @@ projectSamplesOntoLineSegmentsCuda(const Eigen::MatrixXf& line_start_points,
  * @param collision_counter Pointer to collision counter
  * @return u_int32_t Number of configurations in collision
  */
-const u_int32_t executeCollisionConsolidationKernel(
+u_int32_t executeCollisionConsolidationKernel(
     float* configurations_in_collision_device,
     const float* checked_configs_device, const uint8_t* is_config_free_device,
     const u_int32_t max_num_update_particles, const u_int32_t num_configs,
@@ -184,7 +184,7 @@ const u_int32_t executeCollisionConsolidationKernel(
  * @return u_int32_t Number of configurations in collision in first @param M
  * entries
  */
-const u_int32_t executeCountCollisionsInFirstMEntriesKernel(
+u_int32_t executeCountCollisionsInFirstMEntriesKernel(
     const uint8_t* is_config_free_device, const u_int32_t M,
     const u_int32_t num_configs, u_int32_t* first_m_collision_counter);
 /**

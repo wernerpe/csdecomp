@@ -185,7 +185,7 @@ __global__ void collisionConsolidationKernel(
   }
 }
 
-const u_int32_t executeCollisionConsolidationKernel(
+u_int32_t executeCollisionConsolidationKernel(
     float* configurations_in_collision_device,
     const float* checked_configs_device, const uint8_t* is_config_free_device,
     const u_int32_t max_num_update_particles, const u_int32_t num_configs,
@@ -219,7 +219,7 @@ __global__ void countCollisionsInFirstMEntriesKernel(
   }
 }
 
-const u_int32_t executeCountCollisionsInFirstMEntriesKernel(
+u_int32_t executeCountCollisionsInFirstMEntriesKernel(
     const uint8_t* is_config_free_device, const u_int32_t M,
     const u_int32_t num_configs, u_int32_t* first_m_collision_counter) {
   u_int32_t num_collisions = 0;
