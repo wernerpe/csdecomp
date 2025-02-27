@@ -100,15 +100,16 @@ cc_test(
 cc_test_with_system_python(
     name = "build_roadmap_test_interactive",
     srcs = ["build_roadmap_test.cpp"],
+    copts = [
+        "-Icsdecomp/src/cpp",
+        "-Icsdecomp/src/cuda",
+    ] + get_my_system_python_copts(),
     data = [
         "//csdecomp/tests/test_assets:directives",
         "//csdecomp/tests/test_assets:urdf_files",
     ],
     linkopts = [],
-    copts = [
-        "-Icsdecomp/src/cpp",
-        "-Icsdecomp/src/cuda",
-    ] + get_my_system_python_copts(),
+    tags = ["manual"],
     deps = [
         "//csdecomp/src/cpp:drm_planner",
         "//csdecomp/src/cpp:roadmap_builder",
@@ -117,5 +118,4 @@ cc_test_with_system_python(
         "//csdecomp/tests:plotting_utils_interactive",
         "@com_google_googletest//:gtest_main",
     ],
-    tags = ["manual"]
 )

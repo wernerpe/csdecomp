@@ -325,13 +325,18 @@ struct _interpreter {
   ~_interpreter() {
     Py_Finalize();
 
-    setenv("__PYVENV_LAUNCHER__", old_python_launcher, true);
-    setenv("PYTHONHOME", old_python_home, true);
-    setenv("PYTHONPATH", old_python_path, true);
-
-    delete old_python_launcher;
-    delete old_python_home;
-    delete old_python_path;
+    // Only set environment variables if pointers are not NULL
+    if (old_python_launcher) {
+        setenv("__PYVENV_LAUNCHER__", old_python_launcher, true);
+    }
+    
+    if (old_python_home) {
+        setenv("PYTHONHOME", old_python_home, true);
+    }
+    
+    if (old_python_path) {
+        setenv("PYTHONPATH", old_python_path, true);
+    }
   }
 
 

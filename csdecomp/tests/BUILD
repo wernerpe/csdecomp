@@ -51,6 +51,6 @@ cc_binary_with_system_python(
     name = "test_plot_interactive",
     srcs = ["test_matplotlib.cpp"],
     copts = get_my_system_python_copts(),
+    tags = ["manual"],
     deps = [":plotting_utils_interactive"],
-    tags = ["manual"]
 )
