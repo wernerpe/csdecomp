@@ -1,0 +1,243 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug urdf_parser_test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bazel-bin/csdecomp/src/cpp/tests/urdf_parser_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "bazel build urdf_parser_test",
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "Debug kinematic_tree_test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bazel-bin/csdecomp/tests/kinematic_tree_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "bazel build kinematic_tree_test",
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "Debug collision_checker_test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bazel-bin/csdecomp/src/cpp/tests/collision_checker_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "bazel build collision_checker_test",
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "Debug minimal_kinematic_tree_test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bazel-bin/csdecomp/tests/minimal_kinematic_tree_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "bazel build minimal_kinematic_tree_test",
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "Debug hpolyhedron_test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bazel-bin/csdecomp/tests/hpolyhedron_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "bazel build hpolyhedron_test",
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "Debug build_roadmap_test_interactive",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bazel-bin/csdecomp/src/cpp/tests/build_roadmap_test_interactive",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "bazel build build_roadmap_test",
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "Debug EIZO_test_interactive",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bazel-bin/csdecomp/src/cuda/tests/edge_inflation_zero_order_test_interactive",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "bazel build eizo_test_interactive",
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "Debug cuda_set_builder_test_interactive",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bazel-bin/csdecomp/src/cuda/tests/cuda_set_builder_utils_test_interactive",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "bazel build cuda_set_builder_utils_test_interactive",
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "Debug vgraph_test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bazel-bin/csdecomp/src/cuda/tests/cuda_visibility_graph_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "bazel build vgraph_test",
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "Debug polytope_builder_test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bazel-bin/csdecomp/tests/polytope_builder_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "bazel build polytope_builder_test",
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "CUDA C++: Debug forward_kinematics_test",
+            "type": "cuda-gdb",
+            "request": "launch",
+            "program": "${workspaceFolder}/bazel-bin/csdecomp/tests/cuda_forward_kinematics_test",
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "preLaunchTask": "bazel build cuda_forward_kinematics_test"  // Add this line
+          },
+          {
+            "name": "CUDA C++: Debug cuda_collision_checker_test",
+            "type": "cuda-gdb",
+            "request": "launch",
+            "program": "${workspaceFolder}/bazel-bin/csdecomp/tests/cuda_collision_checker_test",
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "preLaunchTask": "bazel build cuda_collision_checker_test"  // Add this line
+          }
+    ]
+}
