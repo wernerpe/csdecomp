@@ -1,0 +1,4 @@
+numpy==1.26.4
+matplotlib==3.5.1
+PyGObject==3.44.1
+mypy==1.13.0

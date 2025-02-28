@@ -6,6 +6,8 @@
 #include <map>
 #include <vector>
 
+#include "hpolyhedron.h"
+
 using namespace csdecomp;
 
 namespace PlottingUtils {

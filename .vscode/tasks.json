@@ -1,0 +1,211 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "bazel build urdf_parser_test",
+            "type": "shell",
+            "command": "bazel",
+            "args": [
+                "build",
+                "//csdecomp/src/cpp/tests:urdf_parser_test",
+                "-c",
+                "dbg"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "bazel build kinematic_tree_test",
+            "type": "shell",
+            "command": "bazel",
+            "args": [
+                "build",
+                "//csdecomp/src/cpp/tests:kinematic_tree_test",
+                "-c",
+                "dbg"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "bazel build collision_checker_test",
+            "type": "shell",
+            "command": "bazel",
+            "args": [
+                "build",
+                "//csdecomp/src/cpp/tests:collision_checker_test",
+                "-c",
+                "dbg"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "bazel build minimal_kinematic_tree_test",
+            "type": "shell",
+            "command": "bazel",
+            "args": [
+                "build",
+                "//csdecomp/src/cpp/tests:minimal_kinematic_tree_test",
+                "-c",
+                "dbg"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "bazel build hpolyhedron_test",
+            "type": "shell",
+            "command": "bazel",
+            "args": [
+                "build",
+                "//csdecomp/src/cpp/tests:hpolyhedron_test",
+                "-c",
+                "dbg"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "bazel build build_roadmap_test_interactive",
+            "type": "shell",
+            "command": "bazel",
+            "args": [
+                "build",
+                "//csdecomp/src/cpp/tests:build_roadmap_test_interactive",
+                "-c",
+                "dbg"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "bazel build eizo_test_interactive",
+            "type": "shell",
+            "command": "bazel",
+            "args": [
+                "build",
+                "//csdecomp/src/cuda/tests:edge_inflation_zero_order_test_interactive",
+                "-c",
+                "dbg"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "bazel build vgraph_test",
+            "type": "shell",
+            "command": "bazel",
+            "args": [
+                "build",
+                "//csdecomp/src/cuda/tests:cuda_visibility_graph_test_interactive",
+                "-c",
+                "dbg"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "bazel build cuda_set_builder_utils_test_interactive",
+            "type": "shell",
+            "command": "bazel",
+            "args": [
+                "build",
+                "//csdecomp/src/cuda/tests:cuda_set_builder_utils_test_interactive",
+                "-c",
+                "dbg"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "bazel build polytope_builder_test_interactive",
+            "type": "shell",
+            "command": "bazel",
+            "args": [
+                "build",
+                "//csdecomp/src/cuda/tests:polytope_builder_test_interactive",
+                "-c",
+                "dbg"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Clang Format",
+            "type": "shell",
+            "command": "/usr/bin/clang-format-15",
+            "args": [
+                "-style=file",
+                "-i",
+                "${file}"
+            ],
+            "group": "none",
+            "presentation": {
+                "reveal": "never",
+                "panel": "dedicated",
+                "close": true
+            }
+        },
+        {
+            "type": "shell",
+            "label": "bazel build cuda_forward_kinematics_test",
+            "command": "bazel",
+            "args": [
+                "build",
+                "//csdecomp/src/cuda/tests:cuda_forward_kinematics_test",
+                "-c", "dbg",
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "type": "shell",
+            "label": "bazel build cuda_collision_checker_test",
+            "command": "bazel",
+            "args": [
+                "build",
+                "//csdecomp/src/cuda/tests:cuda_collision_checker_test",
+                "-c", "dbg",
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}

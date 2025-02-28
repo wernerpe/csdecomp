@@ -128,8 +128,7 @@ class Plant {
     return keys;
   };
 
-  const int getSceneCollisionGeometryIndexByName(
-      const std::string& name) const {
+  int getSceneCollisionGeometryIndexByName(const std::string& name) const {
     auto it =
         inspector_.scene_collision_geometry_name_to_geometry_index.find(name);
     if (it !=

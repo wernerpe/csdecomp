@@ -184,11 +184,11 @@ const Eigen::VectorXf KinematicTree::getPositionUpperLimits() const {
   return lims;
 }
 
-const int KinematicTree::numLinks() const { return links_.size(); }
+int KinematicTree::numLinks() const { return links_.size(); }
 
-const int KinematicTree::numJoints() const { return joints_.size(); }
+int KinematicTree::numJoints() const { return joints_.size(); }
 
-const int KinematicTree::numConfigurationVariables() const {
+int KinematicTree::numConfigurationVariables() const {
   return num_configuration_variables;
 }
 

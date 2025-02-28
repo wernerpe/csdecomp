@@ -3,6 +3,7 @@ load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
 load("//:tools/lint.bzl", "add_lint_tests")
 load("//:tools/my_python_version.bzl", "get_my_python_tag")
+load("@pip//:requirements.bzl", "requirement")
 
 add_lint_tests()
 
@@ -96,13 +97,22 @@ pybind_extension(
     ],
 )
 
+py_binary(
+    name = "generate_stubs",
+    srcs = ["generate_stubs.py"],
+    main = "generate_stubs.py",
+    deps = [
+        requirement("mypy"),
+    ],
+)
+
 genrule(
     name = "copy_init_and_generate_stubs",
     srcs = [
         "__init__.py",
         "py.typed",
         ":pycsdecomp_bindings",
-        "generate_stubs.py",
+        ":generate_stubs",
         "drake_csd_bridge.py",
     ],
     outs = [
@@ -113,24 +123,18 @@ genrule(
         "pycsdecomp/pycsdecomp_bindings.pyi",
     ],
     cmd = """
-        # Create directories
+        # Create directory
         mkdir -p $(RULEDIR)/pycsdecomp
-        mkdir -p $(RULEDIR)/_venv
-
-        # Create venv without symlinks
-        python3 -m venv --copies $(RULEDIR)/_venv
-
-        # Install mypy in the venv
-        $(RULEDIR)/_venv/bin/pip install --no-cache-dir mypy
 
         # Copy required files
         cp $(location __init__.py) $(location py.typed) \
            $(location drake_csd_bridge.py) \
            $(location :pycsdecomp_bindings) $(RULEDIR)/pycsdecomp/
 
-        # Run stub generation with venv python
-        PYTHONPATH=$(RULEDIR) $(RULEDIR)/_venv/bin/python \
-        $(location generate_stubs.py) $(RULEDIR)/pycsdecomp
+        # Run stub generation with Bazel's Python
+        # Extract just the first path from the locations expansion
+        STUBS_SCRIPT="$$(echo $(locations :generate_stubs) | cut -d' ' -f1)"
+        $$STUBS_SCRIPT $(RULEDIR)/pycsdecomp
     """,
 )
 

@@ -1,7 +1,9 @@
 load("@rules_cc//cc:defs.bzl", "cc_test")
 load("@rules_python//python:defs.bzl", "py_test")
-load("//:tools/cc_with_python.bzl", "cc_test_with_python")
+load("@pip//:requirements.bzl", "requirement")
 load("//:tools/lint.bzl", "add_lint_tests")
+load("@//:tools/my_python_version.bzl", "get_my_system_python_copts")
+load("//:tools/cc_with_system_python.bzl", "cc_test_with_system_python")
 
 add_lint_tests()
 
@@ -41,7 +43,7 @@ cc_test(
     ],
 )
 
-cc_test_with_python(
+cc_test(
     name = "edge_inflation_zero_order_test",
     srcs = ["edge_inflation_zero_order_test.cpp"],
     copts = [
@@ -52,7 +54,6 @@ cc_test_with_python(
         "//csdecomp/tests/test_assets:directives",
         "//csdecomp/tests/test_assets:urdf_files",
     ],
-    linkopts = [],
     deps = [
         "//csdecomp/src/cpp:hpolyhedron",
         "//csdecomp/src/cpp:urdf_parser",
@@ -63,7 +64,32 @@ cc_test_with_python(
     ],
 )
 
-cc_test_with_python(
+# This builds the same test but links it with the system python,
+# such that the binary can be directly executed for interactive debugging.
+cc_test_with_system_python(
+    name = "edge_inflation_zero_order_test_interactive",
+    srcs = ["edge_inflation_zero_order_test.cpp"],
+    copts = [
+        "-Icsdecomp/src/cpp",
+        "-Icsdecomp/src/cuda",
+    ] + get_my_system_python_copts(),
+    data = [
+        "//csdecomp/tests/test_assets:directives",
+        "//csdecomp/tests/test_assets:urdf_files",
+    ],
+    linkopts = [],
+    tags = ["manual"],  #only mannualy build for interactive debugging
+    deps = [
+        "//csdecomp/src/cpp:hpolyhedron",
+        "//csdecomp/src/cpp:urdf_parser",
+        "//csdecomp/src/cuda:cuda_edge_inflation_zero_order",
+        "//csdecomp/src/cuda:cuda_set_builder_utils",
+        "//csdecomp/tests:plotting_utils_interactive",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
     name = "polytope_builder_test",
     srcs = ["polytope_builder_test.cpp"],
     copts = [
@@ -74,7 +100,6 @@ cc_test_with_python(
         "//csdecomp/tests/test_assets:directives",
         "//csdecomp/tests/test_assets:urdf_files",
     ],
-    linkopts = [],
     deps = [
         "//csdecomp/src/cpp:collision_checker",
         "//csdecomp/src/cpp:hpolyhedron",
@@ -87,7 +112,32 @@ cc_test_with_python(
     ],
 )
 
-cc_test_with_python(
+cc_test_with_system_python(
+    name = "polytope_builder_test_interactive",
+    srcs = ["polytope_builder_test.cpp"],
+    copts = [
+        "-Icsdecomp/src/cpp",
+        "-Icsdecomp/src/cuda",
+    ] + get_my_system_python_copts(),
+    data = [
+        "//csdecomp/tests/test_assets:directives",
+        "//csdecomp/tests/test_assets:urdf_files",
+    ],
+    linkopts = [],
+    tags = ["manual"],
+    deps = [
+        "//csdecomp/src/cpp:collision_checker",
+        "//csdecomp/src/cpp:hpolyhedron",
+        "//csdecomp/src/cpp:urdf_parser",
+        "//csdecomp/src/cuda:cuda_collision_checker",
+        "//csdecomp/src/cuda:cuda_hit_and_run_sampling",
+        "//csdecomp/src/cuda:cuda_polytope_builder",
+        "//csdecomp/tests:plotting_utils_interactive",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
     name = "cuda_visibility_graph_test",
     srcs = ["cuda_visibility_graph_test.cpp"],
     copts = [
@@ -98,7 +148,6 @@ cc_test_with_python(
         "//csdecomp/tests/test_assets:directives",
         "//csdecomp/tests/test_assets:urdf_files",
     ],
-    linkopts = [],
     deps = [
         "//csdecomp/src/cpp:urdf_parser",
         "//csdecomp/src/cuda:cuda_collision_checker",
@@ -109,20 +158,60 @@ cc_test_with_python(
     ],
 )
 
-cc_test_with_python(
+cc_test_with_system_python(
+    name = "cuda_visibility_graph_test_interactive",
+    srcs = ["polytope_builder_test.cpp"],
+    copts = [
+        "-Icsdecomp/src/cpp",
+        "-Icsdecomp/src/cuda",
+    ] + get_my_system_python_copts(),
+    data = [
+        "//csdecomp/tests/test_assets:directives",
+        "//csdecomp/tests/test_assets:urdf_files",
+    ],
+    linkopts = [],
+    tags = ["manual"],  #only mannualy build for interactive debugging
+    deps = [
+        "//csdecomp/src/cpp:urdf_parser",
+        "//csdecomp/src/cuda:cuda_collision_checker",
+        "//csdecomp/src/cuda:cuda_hit_and_run_sampling",
+        "//csdecomp/src/cuda:cuda_visibility_graph",
+        "//csdecomp/tests:plotting_utils_interactive",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
     name = "cuda_hit_and_run_sampling_test",
     srcs = ["cuda_hit_and_run_sampling_test.cpp"],
     copts = [
         "-Icsdecomp/src/cpp",
         "-Icsdecomp/src/cuda",
     ],
-    data = [],
-    linkopts = [],
     deps = [
         "//csdecomp/src/cpp:hpolyhedron",
         "//csdecomp/src/cuda:cuda_hit_and_run_sampling",
         "//csdecomp/src/cuda:cuda_set_builder_utils",
         "//csdecomp/tests:plotting_utils",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test_with_system_python(
+    name = "cuda_hit_and_run_sampling_test_interactive",
+    srcs = ["cuda_hit_and_run_sampling_test.cpp"],
+    copts = [
+        "-Icsdecomp/src/cpp",
+        "-Icsdecomp/src/cuda",
+    ] + get_my_system_python_copts(),
+    data = [],
+    linkopts = [],
+    tags = ["manual"],  #only mannualy build for interactive debugging
+    deps = [
+        "//csdecomp/src/cpp:hpolyhedron",
+        "//csdecomp/src/cuda:cuda_hit_and_run_sampling",
+        "//csdecomp/src/cuda:cuda_set_builder_utils",
+        "//csdecomp/tests:plotting_utils_interactive",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -144,7 +233,7 @@ cc_test(
     ],
 )
 
-cc_test_with_python(
+cc_test(
     name = "cuda_set_builder_utils_test",
     srcs = ["cuda_set_builder_utils_test.cpp"],
     copts = [
@@ -152,11 +241,28 @@ cc_test_with_python(
         "-Icsdecomp/src/cuda",
     ],
     data = [],
-    linkopts = [],
     deps = [
         "//csdecomp/src/cpp:hpolyhedron",
         "//csdecomp/src/cuda:cuda_set_builder_utils",
         "//csdecomp/tests:plotting_utils",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test_with_system_python(
+    name = "cuda_set_builder_utils_test_interactive",
+    srcs = ["cuda_set_builder_utils_test.cpp"],
+    copts = [
+        "-Icsdecomp/src/cpp",
+        "-Icsdecomp/src/cuda",
+    ] + get_my_system_python_copts(),
+    data = [],
+    linkopts = [],
+    tags = ["manual"],  #only mannualy build for interactive debugging
+    deps = [
+        "//csdecomp/src/cpp:hpolyhedron",
+        "//csdecomp/src/cuda:cuda_set_builder_utils",
+        "//csdecomp/tests:plotting_utils_interactive",
         "@com_google_googletest//:gtest_main",
     ],
 )

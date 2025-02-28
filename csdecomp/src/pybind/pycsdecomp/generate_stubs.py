@@ -18,6 +18,7 @@ def generate_stubs(module_dir):
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
+        print(sys.argv)
         print("Usage: python generate_stubs.py <module_directory>")
         sys.exit(1)
         
