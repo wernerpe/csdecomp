@@ -12,15 +12,13 @@ Currently, the installation requires building from source using bazel. I have on
 
     (Note: You will need to make sure that your display driver is compatible with the cuda version installed. Otherwise the code might compile but all of the kernel launches will do nothing.)
 
-2. Install bazel via bazelisk and clang-fromat if needed:
-
-    [bazelisk instructions ](https://github.com/bazelbuild/bazelisk/blob/master/README.md)
-
-    `sudo apt-get install clang-format`
-
-3. Make sure you have python3.10 with dev dependencies installed
-
-    `test -f /usr/include/python3.10/Python.h && echo "exists" || echo "not found"`
+2. Install prereqs:
+    
+    Install bazel via bazelisk: 
+    [bazelisk instructions](https://github.com/bazelbuild/bazelisk/blob/master/README.md)
+    
+    Other prereqs via:
+    `sudo bash setup.sh`
 
 4. Build and test the code to ensure that everything was installed correctly:
     
@@ -62,7 +60,14 @@ E.g. `poetry shell && python minimal_test.py`
 
 # Developing
 
-I added the .vscode runfiles for interactive debugging the cpp code using vscode. In order to use the plotting together with gdb the targets currently need to depend on the system python. To use this make sure that your system python has a version of matplotlib installed. An example of this is in `csdecomp/src/cuda/tests/BUILD`.
+I added the .vscode runfiles for interactive debugging the cpp code using vscode. In order to use the plotting together with gdb the targets currently need to depend on the system python. To use this make sure that your system python has a version of matplotlib installed along with the dev headers. 
+This can be checked via
+
+    `test -f /usr/include/python3.10/Python.h && echo "exists" || echo "not found"`
+
+An example creating such a target is in `csdecomp/src/cuda/tests/BUILD`.
+
+
 
 # Citation
 
