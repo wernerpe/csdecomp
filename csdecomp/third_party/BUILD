@@ -1,5 +1,4 @@
 load("@//:tools/embedded_py.bzl", "cc_py_library")
-#load("@//:tools/cc_with_system_python.bzl", "cc_library_with_system_python")
 load("@pip//:requirements.bzl", "requirement")
 load("@rules_cc//cc:defs.bzl", "cc_library")
 

@@ -60,6 +60,10 @@ E.g. `poetry shell && python minimal_test.py`
 
     For the notebooks make sure to select the kernel corresponding to the venv created by poetry. If you are using vscode, you may need to open the examples folder speparately, e.g. `cd examples && code .`, for it to detect and list the kernel automatically.
 
+# Developing
+
+I added the .vscode runfiles for interactive debugging the cpp code using vscode. In order to use the plotting together with gdb the targets currently need to depend on the system python. To use this make sure that your system python has a version of matplotlib installed. An example of this is in `csdecomp/src/cuda/tests/BUILD`.
+
 # Citation
 
 If you find this code useful, please consider citing our paper:
