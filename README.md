@@ -60,7 +60,7 @@ E.g. `poetry shell && python minimal_test.py`
 
 # Developing
 
-I added the .vscode runfiles for interactive debugging the cpp code using vscode. In order to use the plotting together with gdb the targets currently need to depend on the system python. To use this make sure that your system python has a version of matplotlib installed along with the dev headers. 
+I added the .vscode runfiles for interactive debugging the cpp code using vscode. In order to use the plotting together with gdb, the targets currently need to depend on the system python. To use this, make sure that your system python has a version of matplotlib installed along with the dev headers. 
 This can be checked via
 
     `test -f /usr/include/python3.10/Python.h && echo "exists" || echo "not found"`
