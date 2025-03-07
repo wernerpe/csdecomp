@@ -32,8 +32,7 @@ struct MinimalPlant {
    * possible pairs given MAX_NUM_STATIC_COLLISION_GEOMETRIES.
    */
   GeometryIndex collision_pairs_flat[MAX_NUM_STATIC_COLLISION_GEOMETRIES *
-                                     (MAX_NUM_STATIC_COLLISION_GEOMETRIES - 1) /
-                                     2];
+                                     (MAX_NUM_STATIC_COLLISION_GEOMETRIES - 1)];
 
   /** @brief The number of collision geometries in the scene. */
   int32_t num_scene_geometries;
@@ -63,9 +62,16 @@ class Plant {
   };
 
   const MinimalPlant getMinimalPlant() const {
+    assert(static_cast<int>(scene_collision_geometries_.size() <=
+                            MAX_NUM_STATIC_COLLISION_GEOMETRIES));
+    assert(kin_tree_.numJoints() <= MAX_JOINTS_PER_TREE);
+    assert(kin_tree_.numLinks() <= MAX_LINKS_PER_TREE);
+
     MinimalKinematicTree mtree = kin_tree_.getMyMinimalKinematicTreeStruct();
     CollisionPairMatrix cpm = inspector_.getCollisionPairMatrix();
 
+    assert(cpm.cols() <= MAX_NUM_STATIC_COLLISION_GEOMETRIES *
+                             (MAX_NUM_STATIC_COLLISION_GEOMETRIES - 1) / 2);
     // Calculate the number of geometries to copy
     int num_geometries =
         std::min(static_cast<int>(scene_collision_geometries_.size()),
