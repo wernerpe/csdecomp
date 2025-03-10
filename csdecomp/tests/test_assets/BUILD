@@ -1,6 +1,8 @@
 filegroup(
     name = "urdf_files",
-    srcs = glob(["*.urdf"]),
+    srcs = glob(["**/*.urdf"]) + 
+           glob(["**/*.obj"]) + 
+           glob(["**/*.STL"]),
     visibility = ["//visibility:public"],
 )
 

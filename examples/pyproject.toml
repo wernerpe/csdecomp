@@ -7,7 +7,7 @@ authors = ["Peter Werner <wernerpe@mit.edu>"]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
-drake = "^1.28.0"
+drake = "^1.38.0"
 numpy = "^1.25.2"
 ipywidgets = "8.1.2"
 jupyter = "^1.1.1"

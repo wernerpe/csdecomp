@@ -4,6 +4,7 @@ load("//:tools/lint.bzl", "add_lint_tests")
 load("//:tools/cc_with_system_python.bzl", "cc_binary_with_system_python")
 load("//:tools/embedded_py.bzl", "cc_py_library")
 load("@//:tools/my_python_version.bzl", "get_my_system_python_copts")
+load("@pip//:requirements.bzl", "requirement")
 
 add_lint_tests()
 
@@ -36,8 +37,13 @@ cc_library(
 py_test(
     name = "pycsdecomp_test",
     srcs = ["pycsdecomp_test.py"],
+    data = [
+        "//csdecomp/tests/test_assets:directives",
+        "//csdecomp/tests/test_assets:urdf_files",
+    ],
     deps = [
         "//csdecomp/src/pybind/pycsdecomp:pycsdecomp_lib_internal",
+        requirement("drake"),
     ],
 )
 

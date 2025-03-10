@@ -3,7 +3,8 @@ from pydrake.all import (MultibodyPlant,
                          ModelInstanceIndex,
                          Role,
                          Box,
-                         Sphere)
+                         Sphere,
+                         Context)
 from typing import Union
 import pycsdecomp as csd
 import numpy as np
