@@ -7,7 +7,7 @@ from pydrake.all import (MultibodyPlant,
 from typing import Union
 import pycsdecomp as csd
 import numpy as np
-
+from scipy.spatial.transform import Rotation
 
 def set_joint_type_by_drake_name(drake_joint_type_name: str)->csd.JointType:
     if drake_joint_type_name == 'weld':
@@ -44,13 +44,14 @@ def get_compound_name(model_name, body_name):
     else:
         return f"{model_name}::{body_name}"
     
-def convert_drake_plant_to_csd_plant(drake_plant : MultibodyPlant,
-                                     inspector : SceneGraphInspector)\
-                                    ->csd.Plant:    
+def convert_drake_plant_to_csd_plant(drake_plant: MultibodyPlant,
+                                     plant_context: Context,
+                                     inspector: SceneGraphInspector
+                                     )->csd.Plant:
     csd_KT = csd.KinematicTree()
     model_instance_indices = [ModelInstanceIndex(i) \
-                              for i in range(
-                                  drake_plant.num_model_instances())]
+                                for i in range(
+                                    drake_plant.num_model_instances())]
     all_drake_bodies = []
     csd_links = []
     for miidx in model_instance_indices:
@@ -59,7 +60,7 @@ def convert_drake_plant_to_csd_plant(drake_plant : MultibodyPlant,
             all_drake_bodies.append(drake_plant.get_body(bid))
             if all_drake_bodies[-1].is_floating():
                 raise NotImplementedError('floating bases not \
-                                          supported yet.')
+                                            supported yet.')
             csd_link = csd.Link()
             #will be set later when processing the joints
             csd_link.parent_joint = -1
@@ -74,11 +75,12 @@ def convert_drake_plant_to_csd_plant(drake_plant : MultibodyPlant,
     joint_idx = drake_plant.GetJointIndices()
     csd_joints = []
     all_drake_joints = []
+    assoc_model_names = []
     for jid in joint_idx:
         joint = drake_plant.get_joint(jid)
         lower = joint.position_lower_limits()
         upper = joint.position_upper_limits()
-        
+
         all_drake_joints.append(joint)
         local_parent_id = all_drake_bodies.index(joint.parent_body())
         local_child_id = all_drake_bodies.index(joint.child_body())
@@ -88,8 +90,8 @@ def convert_drake_plant_to_csd_plant(drake_plant : MultibodyPlant,
         csd_joint.name = joint.name()
         csd_joint.type = set_joint_type_by_drake_name(joint.type_name())
         if csd_joint.type != csd.JointType.FIXED:
-            csd_joint.position_lower_limit = lower
-            csd_joint.position_upper_limit = upper
+            csd_joint.position_lower_limit = lower[0]
+            csd_joint.position_upper_limit = upper[0]
             
         csd_joint.parent_link = csd_KT.get_link_index(
             csd_links[local_parent_id].name)
@@ -107,6 +109,49 @@ def convert_drake_plant_to_csd_plant(drake_plant : MultibodyPlant,
         csd_joints.append(csd_joint)
         csd_links[local_parent_id].child_joints.append(len(csd_joints)-1)
         csd_links[local_child_id].parent_joint = len(csd_joints)-1
+        model_name_link = csd_links[local_child_id].name.split('::')[0]
+        assoc_model_names.append(model_name_link)
+
+    #itentify locked joints, switch them to csd.JointType.FIXED and correct the transform
+    for idx, (dj, csdj, mn) in enumerate(zip(all_drake_joints, csd_joints, assoc_model_names)):
+        if csdj.type == csd.JointType.FIXED:
+            continue
+        if dj.is_locked(plant_context):
+            print("Locked joint found:")
+            print(f"Joint {dj} csd Joint {csdj.name}")
+            #compute value of locked joint 
+            print(drake_plant.GetPositionNames())
+            partial_name = mn+"_"+dj.name()
+            idx_lookup = 0
+            for pn in drake_plant.GetPositionNames():
+                if partial_name in pn:
+                    break
+                idx_lookup+=1
+            locked_joint_val = drake_plant.GetPositions(plant_context)[idx_lookup]
+            print(f"Joint {dj.name} is locked at displacement {locked_joint_val}")
+            fixed_joint = csd.Joint()
+            fixed_joint.name = csdj.name
+            fixed_joint.X_PL_J = csdj.X_PL_J
+            fixed_joint.axis = csdj.axis
+            fixed_joint.parent_link = csdj.parent_link
+            fixed_joint.child_link = csdj.child_link
+            fixed_joint.type = csd.JointType.FIXED
+
+            #now we correct the transform
+            if csdj.type == csd.JointType.REVOLUTE:
+                rot = Rotation.from_rotvec(locked_joint_val * np.array(csdj.axis)).as_matrix()
+                X_J_L = np.eye(4)
+                X_J_L[:3, :3] = rot
+            elif csdj.type == csd.JointType.PRISMATIC:
+                X_J_L = np.eye(4)
+                X_J_L[:3, 3] = np.array(csdj.axis) * locked_joint_val
+            else:
+                raise NotImplementedError(f""""Converting locked drake joint type {dj.type_name()} not supported.
+    Csd joint: {csdj.name} {csdj.type}""")
+            fixed_joint.X_PL_J = csdj.X_PL_J@X_J_L 
+            #substitute the joint in the list
+            csd_joints[idx] = fixed_joint
+
     for j in csd_joints:
         csd_KT.add_joint(j)
 
