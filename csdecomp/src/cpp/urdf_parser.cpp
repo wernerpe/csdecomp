@@ -522,6 +522,12 @@ void URDFParser::finalizeScene() {
       }
       int prev_joint_idx =
           kinematic_tree_.getLink(prev_joint.parent_link).parent_joint;
+      if (prev_joint_idx == -1) {
+        throw std::runtime_error(
+            fmt::format("The kinematic tree appears to be disconnected. The "
+                        "link {} as parent joint index -1.",
+                        kinematic_tree_.getLink(prev_joint.parent_link).name));
+      }
       prev_joint = kinematic_tree_.getJoint(prev_joint_idx);
     }
   }
