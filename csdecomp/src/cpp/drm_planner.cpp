@@ -478,6 +478,8 @@ int DrmPlanner::_plan(const Eigen::VectorXf& start_configuration,
                         options_.try_shortcutting, root_p_voxels,
                         online_voxel_radius, robot_joints_path)) {
         return 1;
+      } else {
+        return 0;
       }
     } else {
       return 0;
