@@ -3,7 +3,7 @@ MODULE.bazel.*
 *.pyc
 *.pyo
 tmp/*
-.vscode
+.vscode/*
 *.egg-info*
 dist/*
 build/*
