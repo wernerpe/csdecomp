@@ -178,7 +178,7 @@ TEST_F(DRMTest, CollisionSetTest) {
     offline_voxel_locations.push_back(GetCollisionVoxelCenter(i, options));
   }
 
-  if (std::getenv("BAZEL_TEST") == nullptr) {
+  if (false && std::getenv("BAZEL_TEST") == nullptr) {
     setupTestPlottingEnv();
     plt::figure_size(2000, 2000);
 
