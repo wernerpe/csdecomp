@@ -47,6 +47,15 @@ py_test(
     ],
 )
 
+py_test(
+    name = "drake_dep_test",
+    srcs = ["drake_dep_test.py"],
+    deps = [
+        requirement("drake"),
+        requirement("numpy"),
+    ],
+)
+
 cc_binary(
     name = "test_plot",
     srcs = ["test_matplotlib.cpp"],

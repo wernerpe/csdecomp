@@ -1,17 +1,20 @@
 import unittest
-import pycsdecomp as csd
 import numpy as np
+print(f"numpy version {np.__version__}")
+import pycsdecomp as csd
+
 import sys
 
-from pydrake.all import (RobotDiagramBuilder,
+class TestBasic(unittest.TestCase):
+    def test_drake_import(self):
+        from pydrake.all import (RobotDiagramBuilder,
                          LoadModelDirectives,
                          ProcessModelDirectives,
                          SceneGraphCollisionChecker,
                          QueryObject, 
                          SceneGraphInspector)
-
-class TestBasic(unittest.TestCase):
     def test_link(self):
+        print(f"numpy version {np.__version__}")
         link = csd.Link()
         link.name = "elbow"
         self.assertEqual(link.name, "elbow")
@@ -21,6 +24,12 @@ class TestBasic(unittest.TestCase):
 
 class TestDrakeCSDBridge(unittest.TestCase):
     def test_drake_csd_bridge(self):
+        from pydrake.all import (RobotDiagramBuilder,
+                         LoadModelDirectives,
+                         ProcessModelDirectives,
+                         SceneGraphCollisionChecker,
+                         QueryObject, 
+                         SceneGraphInspector)
         asset_path = "csdecomp/tests/test_assets"
         directives_path = asset_path + "/directives/simple_kinova_sens_on_table.yml"
         rbuilder = RobotDiagramBuilder()

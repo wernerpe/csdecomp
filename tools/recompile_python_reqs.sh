@@ -1,0 +1,1 @@
+bazel run //csdecomp/third_party/python:requirements.update
