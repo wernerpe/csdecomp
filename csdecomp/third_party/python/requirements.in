@@ -3,3 +3,4 @@ matplotlib==3.10.1
 PyGObject==3.44.1
 mypy==1.13.0
 drake==1.39.0
+scipy==1.13.0

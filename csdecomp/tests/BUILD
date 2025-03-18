@@ -44,6 +44,7 @@ py_test(
     deps = [
         "//csdecomp/src/pybind/pycsdecomp:pycsdecomp_lib_internal",
         requirement("drake"),
+        requirement("scipy"),
     ],
 )
 
