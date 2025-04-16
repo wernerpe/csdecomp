@@ -77,7 +77,7 @@ If you find this code useful, please consider citing our paper:
 @article{werner2024superfast,
   title={Superfast Configuration-Space Convex Set Computation on GPUs for Online Motion Planning},
   author={Werner, Peter and Cheng, Richard and Stewart, Tom and Tedrake, Russ and Rus, Daniela},
-  journal={TBD},
+  journal={arXiv preprint arXiv:2504.10783},
   year={2025}
 }
 ```
