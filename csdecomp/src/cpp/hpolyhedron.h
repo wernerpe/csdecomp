@@ -44,7 +44,8 @@ class HPolyhedron {
    * @param A The matrix of face normals.
    * @param b The right-hand side vector.
    */
-  HPolyhedron(const Eigen::MatrixXf& A, Eigen::VectorXf& b);
+  HPolyhedron(const Eigen::Ref<const Eigen::MatrixXf>& A,
+              const Eigen::Ref<const Eigen::VectorXf>& b);
 
   /**
    * @brief Gets the matrix of face normals.

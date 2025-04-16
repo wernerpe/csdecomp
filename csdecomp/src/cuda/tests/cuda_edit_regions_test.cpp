@@ -108,10 +108,10 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
   regions.push_back(domain);
   regions.push_back(domain);
 
-  Eigen::MatrixXf collisions(2, 3);
+  Eigen::MatrixXf collisions(2, 4);
   // clang-format off
-  collisions << -0.9, 0.9, 1.1,
-                 1.0, 1.0,-1.0;
+  collisions << -0.9, 0.9, 1.1, 1.9,
+                 1.0, 1.0,-1.0, 1.9;
   // clang-format on
 
   auto result =
