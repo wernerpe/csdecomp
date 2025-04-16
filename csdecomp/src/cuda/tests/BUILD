@@ -266,3 +266,37 @@ cc_test_with_system_python(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+# cc_test(
+#     name = "cuda_set_builder_utils_test",
+#     srcs = ["cuda_set_builder_utils_test.cpp"],
+#     copts = [
+#         "-Icsdecomp/src/cpp",
+#         "-Icsdecomp/src/cuda",
+#     ],
+#     data = [],
+#     deps = [
+#         "//csdecomp/src/cpp:hpolyhedron",
+#         "//csdecomp/src/cuda:cuda_set_builder_utils",
+#         "//csdecomp/tests:plotting_utils",
+#         "@com_google_googletest//:gtest_main",
+#     ],
+# )
+
+cc_test_with_system_python(
+    name = "cuda_edit_regions_test_interactive",
+    srcs = ["cuda_edit_regions_test.cpp"],
+    copts = [
+        "-Icsdecomp/src/cpp",
+        "-Icsdecomp/src/cuda",
+    ] + get_my_system_python_copts(),
+    data = [],
+    linkopts = [],
+    tags = ["manual"],  #only mannualy build for interactive debugging
+    deps = [
+        "//csdecomp/src/cpp:hpolyhedron",
+        "//csdecomp/src/cuda:cuda_edit_regions",
+        "//csdecomp/tests:plotting_utils_interactive",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

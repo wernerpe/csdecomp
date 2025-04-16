@@ -120,6 +120,18 @@ cuda_library(
 )
 
 cuda_library(
+    name = "cuda_edit_regions",
+    srcs = ["cuda_edit_regions.cu"],
+    hdrs = ["cuda_edit_regions.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":cuda_set_builder_utils",
+        ":cuda_collision_checker",
+        "@eigen",
+    ],
+)
+
+cuda_library(
     name = "drm_cuda_utils",
     srcs = ["drm_cuda_utils.cu"],
     hdrs = ["drm_cuda_utils.h"],
