@@ -8,7 +8,7 @@
 // #include "cuda_collision_checker.h"
 // #include "cuda_hit_and_run_sampling.h"
 // #include "cuda_polytope_builder.h"
-// #include "cuda_edit_regions.h"
+#include "cuda_edit_regions.h"
 #include "hpolyhedron.h"
 #include "minimal_plant.h"
 #include "plotting_utils.h"
@@ -82,27 +82,42 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
   SceneInspector inspector = parser.getSceneInspector();
   HPolyhedron domain;
   domain.MakeBox(tree.getPositionLowerLimits(), tree.getPositionUpperLimits());
-  
+
   EditRegionsOptions options;
   options.bisection_steps = 9;
   options.configuration_margin = 0.01;
   Voxels vox(3, 3);
   // clang-format off
-    vox<< -0.55, -1.50, 1.90,  
-           2.02,  1.80, 1.90,
-           0.00,  0.00, 0.00;
+    vox << -0.55, -1.50, 1.90,  
+            2.02,  1.80, 1.90,
+            0.00,  0.00, 0.00;
   // clang-format on
   float voxel_radius = 0.05;
 
-  Eigen::MatrixXf line_start(2, 6);
-  Eigen::MatrixXf line_end(2, 6);
-  Eigen::Vector2f l_start;
-  l_start << -0.5, 1.75;
-  Eigen::Vector2f l_end;
-  l_end << 0.5, 1.75;
-  std::vector<HPolyhedron> regions;
-  
+  Eigen::MatrixXf line_start(2, 3);
+  Eigen::MatrixXf line_end(2, 3);
+  // clang-format off
+  line_start << -1.90, 0.00, 0.00,
+                 0.00, 0.00, 1.80;
 
+  line_end  <<   0.00, 0.00, 1.90,
+                 0.00, 1.80, 1.80;
+  // clang-format on
+  std::vector<HPolyhedron> regions;
+  regions.push_back(domain);
+  regions.push_back(domain);
+  regions.push_back(domain);
+
+  Eigen::MatrixXf collisions(2, 3);
+  // clang-format off
+  collisions << -0.9, 0.9, 0.9,
+                 1.0, 1.0,-1.0;
+  // clang-format on
+
+  std::pair<std::vector<HPolyhedron>, Eigen::MatrixXf> result =
+      EditRegionsCuda(collisions, line_start, line_end, regions, plant,
+                      inspector.robot_geometry_ids, vox, voxel_radius, options);
+  Eigen::MatrixXf projections = result.second;
   if (std::getenv("BAZEL_TEST") == nullptr && DO_PLOT) {
     Eigen::Matrix2Xf obs_points;
     Eigen::Matrix2Xf centers;
@@ -140,9 +155,27 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
     }
     PlottingUtils::plot(env_points.row(0), env_points.row(1),
                         {{"color", "k"}, {"linewidth", "2"}});
+    PlottingUtils::scatter(collisions.row(0), collisions.row(1), 100,
+                           {{"color", "r"}});
 
-    matplotlibcpp::plot({l_start[0], l_end[0]}, {l_start[1], l_end[1]},
-                        {{"color", "g"}, {"linewidth", "2.0"}});
+    PlottingUtils::scatter(projections.row(0), projections.row(1), 50,
+                           {{"color", "b"}});
+
+    for (int idx_col = 0; idx_col < collisions.cols(); idx_col++) {
+      for (int idx_ls = 0; idx_ls < line_start.cols(); idx_ls++) {
+        matplotlibcpp::plot(
+            {collisions(0, idx_col),
+             projections(0, idx_ls + idx_col*line_start.cols())},
+            {collisions(1, idx_col),
+             projections(1, idx_ls + idx_col*line_start.cols())},
+            {{"color", "k"}, {"linewidth", "1.0"}});
+      }
+    }
+    matplotlibcpp::plot(
+        {line_start(0, 0), line_start(0, 1), line_start(0, 2), line_end(0, 2)},
+        {line_start(1, 0), line_start(1, 1), line_start(1, 2), line_end(1, 2)},
+        {{"color", "g"}, {"linewidth", "2.0"}});
+
     for (size_t vox_id = 0; vox_id < vox.cols(); ++vox_id) {
       PlottingUtils::draw_circle(vox(0, vox_id), vox(1, vox_id), voxel_radius,
                                  "k");
@@ -159,16 +192,18 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
 //   MinimalPlant plant = parser.getMinimalPlant();
 //   SceneInspector inspector = parser.getSceneInspector();
 //   HPolyhedron domain;
-//   domain.MakeBox(tree.getPositionLowerLimits(), tree.getPositionUpperLimits());
+//   domain.MakeBox(tree.getPositionLowerLimits(),
+//   tree.getPositionUpperLimits());
 
 //   EizoOptions fei_options;
 //   fei_options.track_iteration_information = true;
 
-//   CudaEdgeInflator set_builder(plant, inspector.robot_geometry_ids, fei_options,
+//   CudaEdgeInflator set_builder(plant, inspector.robot_geometry_ids,
+//   fei_options,
 //                                domain);
 //   Voxels vox(3, 6);
 //   // clang-format off
-//     vox<< -0.55, -1.50, 0.20, 1.90, -1.90,  1.90,  
+//     vox<< -0.55, -1.50, 0.20, 1.90, -1.90,  1.90,
 //            2.05,  1.80, 0.20, 0.00, 0.00,  1.90,
 //            0.00,  0.00, 0.00, 0.00, 0.00,  0.00;
 //   //clang-format on
@@ -177,10 +212,10 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
 //   Eigen::MatrixXf line_start(2,6);
 //   Eigen::MatrixXf line_end(2,6);
 //   // clang-format off
-//   line_start<< -0.55, -0.2 , 1.75,-1.75,  0.50,  0.50,  
+//   line_start<< -0.55, -0.2 , 1.75,-1.75,  0.50,  0.50,
 //                -0.20,  1.00, 1.00, 1.00,  1.75, -1.75;
 
-//   line_end  <<  0.55, -0.20, 1.75,-1.75, -0.50, -0.50,  
+//   line_end  <<  0.55, -0.20, 1.75,-1.75, -0.50, -0.50,
 //                -0.20, -1.00,-1.00,-1.00,  1.75, -1.75;
 //   // clang-format on
 //   std::vector<HPolyhedron> regions;
@@ -241,7 +276,8 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
 //     }
 
 //     for (size_t vox_id = 0; vox_id < vox.cols(); ++vox_id) {
-//       PlottingUtils::draw_circle(vox(0, vox_id), vox(1, vox_id), voxel_radius,
+//       PlottingUtils::draw_circle(vox(0, vox_id), vox(1, vox_id),
+//       voxel_radius,
 //                                  "k");
 //     }
 //     for (auto r : regions) {
@@ -273,7 +309,8 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
 //   options.verbose = false;
 //   options.track_iteration_information = true;
 
-//   CudaEdgeInflator set_builder(kinova_plant, insp.robot_geometry_ids, options,
+//   CudaEdgeInflator set_builder(kinova_plant, insp.robot_geometry_ids,
+//   options,
 //                                domain);
 //   Voxels vox(3, 4);
 
@@ -305,7 +342,8 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
 //   interior_points.col(0) = poly_vec.at(0).ChebyshevCenter();
 //   const int num_coll_checks = 10000;
 //   const std::vector<Eigen::MatrixXf> samples_poly =
-//       UniformSampleInHPolyhedronCuda(poly_vec, interior_points, num_coll_checks,
+//       UniformSampleInHPolyhedronCuda(poly_vec, interior_points,
+//       num_coll_checks,
 //                                      50);
 
 //   std::vector<uint8_t> results =
@@ -340,7 +378,8 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
 //   options.verbose = false;
 //   options.track_iteration_information = true;
 
-//   CudaEdgeInflator set_builder(kinova_plant, insp.robot_geometry_ids, options,
+//   CudaEdgeInflator set_builder(kinova_plant, insp.robot_geometry_ids,
+//   options,
 //                                domain);
 
 //   int num_voxels = 1000;
@@ -378,7 +417,8 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
 //   interior_points.col(0) = poly_vec.at(0).ChebyshevCenter();
 //   const int num_coll_checks = 10000;
 //   const std::vector<Eigen::MatrixXf> samples_poly =
-//       UniformSampleInHPolyhedronCuda(poly_vec, interior_points, num_coll_checks,
+//       UniformSampleInHPolyhedronCuda(poly_vec, interior_points,
+//       num_coll_checks,
 //                                      50);
 
 //   std::vector<uint8_t> results =

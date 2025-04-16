@@ -16,7 +16,7 @@ struct EditRegionsOptions {
   bool verbose{false};
 };
 
-std::vector<HPolyhedron> EditRegionsCuda(
+std::pair<std::vector<HPolyhedron>, Eigen::MatrixXf> EditRegionsCuda(
     const Eigen::MatrixXf& collisions, const Eigen::MatrixXf& line_start_points,
     const Eigen::MatrixXf& line_end_points,
     const std::vector<HPolyhedron> regions,
