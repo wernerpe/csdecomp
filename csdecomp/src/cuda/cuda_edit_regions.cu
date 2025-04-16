@@ -20,17 +20,21 @@ std::vector<HPolyhedron> EditRegionsCuda(
   assert(!regions.empty() && "Regions vector cannot be empty");
   assert(collisions.rows() == regions.at(0).ambient_dimension() &&
          "collisions must live in the same space as the regions");
-  assert(ine_start_points.rows() == regions.at(0).ambient_dimension() &&
+  assert(line_start_points.rows() == regions.at(0).ambient_dimension() &&
          "the linesegments must live in the same dimension as the regions");
   assert(!robot_geometry_ids.empty() && "Robot geometry IDs cannot be empty");
   assert(voxel_radius > 0 && "Voxel radius must be positive");
 
   int idx = 0;
-  for (const auto r : regions) {
-    assert(r.PointInSet(line_start_points.col(idx)) &&
-           fmt::format("line start is not contained in region {}", idx));
-    assert(r.PointInSet(line_end_points.col(idx)) &&
-           fmt::format("line end is not contained in region {}", idx));
+  for (const auto& r : regions) {
+    assert(r.PointInSet(line_start_points.col(idx)));
+    if (!r.PointInSet(line_start_points.col(idx))) {
+      throw std::runtime_error(fmt::format("line start is not contained in region {}", idx));
+    }
+    assert(r.PointInSet(line_end_points.col(idx)));
+    if (!r.PointInSet(line_end_points.col(idx))) {
+      throw std::runtime_error(fmt::format("line end is not contained in region {}", idx));
+    }
     ++idx;
   }
 
@@ -66,7 +70,7 @@ std::vector<HPolyhedron> EditRegionsCuda(
 
   CudaPtr<const float> samples_ptr(collisions_to_project.data(),
                                    num_push_back * dimension);
-  CudaPtr<const u_int32_t> line_seg_idxs_ptr(line_seg_idxs.data(),
+  CudaPtr<const u_int32_t> line_seg_idxs_ptr(line_segment_idxs.data(),
                                              num_push_back);
 
   line_start_pts_ptr.copyHostToDevice();
