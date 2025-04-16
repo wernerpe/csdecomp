@@ -62,6 +62,7 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        "//csdecomp/src/cuda:cuda_edit_regions",
         "//csdecomp/src/cuda:cuda_polytope_builder",
         "//csdecomp/src/cuda:cuda_visibility_graph",
     ],
