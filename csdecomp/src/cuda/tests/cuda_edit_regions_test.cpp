@@ -110,14 +110,15 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
 
   Eigen::MatrixXf collisions(2, 3);
   // clang-format off
-  collisions << -0.9, 0.9, 0.9,
+  collisions << -0.9, 0.9, 1.1,
                  1.0, 1.0,-1.0;
   // clang-format on
 
-  std::pair<std::vector<HPolyhedron>, Eigen::MatrixXf> result =
+  auto result =
       EditRegionsCuda(collisions, line_start, line_end, regions, plant,
                       inspector.robot_geometry_ids, vox, voxel_radius, options);
-  Eigen::MatrixXf projections = result.second;
+  Eigen::MatrixXf projections = result.second.first;
+  Eigen::MatrixXf opt = result.second.second;
   if (std::getenv("BAZEL_TEST") == nullptr && DO_PLOT) {
     Eigen::Matrix2Xf obs_points;
     Eigen::Matrix2Xf centers;
@@ -169,6 +170,12 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
             {collisions(1, idx_col),
              projections(1, idx_ls + idx_col*line_start.cols())},
             {{"color", "k"}, {"linewidth", "1.0"}});
+        matplotlibcpp::plot(
+            {collisions(0, idx_col),
+             opt(0, idx_ls + idx_col*line_start.cols())},
+            {collisions(1, idx_col),
+             opt(1, idx_ls + idx_col*line_start.cols())},
+            {{"color", "r"}, {"linewidth", "3.0"}});
       }
     }
     matplotlibcpp::plot(

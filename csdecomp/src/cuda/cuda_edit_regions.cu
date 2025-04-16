@@ -1,10 +1,13 @@
 #include <fmt/core.h>
 
+#include "cuda_collision_checker.h"
+#include "cuda_edge_inflation_zero_order.h"
 #include "cuda_edit_regions.h"
+#include "cuda_forward_kinematics.h"
 
 namespace csdecomp {
 
-std::pair<std::vector<HPolyhedron>, Eigen::MatrixXf> EditRegionsCuda(
+std::pair<std::vector<HPolyhedron>, std::pair<Eigen::MatrixXf,Eigen::MatrixXf>> EditRegionsCuda(
     const Eigen::MatrixXf& collisions, const Eigen::MatrixXf& line_start_points,
     const Eigen::MatrixXf& line_end_points,
     const std::vector<HPolyhedron> regions, const MinimalPlant& plant,
@@ -59,10 +62,20 @@ std::pair<std::vector<HPolyhedron>, Eigen::MatrixXf> EditRegionsCuda(
   }
 
   // prepare GPU memory
-  Eigen::MatrixXf projections_flat(dimension, num_push_back);
+  Eigen::MatrixXf projections(dimension, num_push_back);
+  Eigen::MatrixXf optimized_collisions(dimension, num_push_back);
   float distances_flat[num_push_back];
-  CudaPtr<float> projections_ptr(projections_flat.data(),
-                                 num_push_back * dimension);
+
+  CudaPtr<float> projections_buffer(projections.data(), num_push_back * dimension);
+  CudaPtr<float> bisection_upper_bounds_buffer(nullptr,
+                                               num_push_back * dimension);
+  CudaPtr<float> bisection_lower_bounds_buffer(nullptr,
+                                               num_push_back * dimension);
+  CudaPtr<float> updated_configs_buffer(nullptr, num_push_back * dimension);
+
+  CudaPtr<float> optimized_collisions_buffer(optimized_collisions.data(),
+                                             num_push_back * dimension);
+
   CudaPtr<float> distances_ptr(distances_flat, num_push_back);
 
   CudaPtr<const float> line_start_pts_ptr(line_start_points.data(),
@@ -75,24 +88,86 @@ std::pair<std::vector<HPolyhedron>, Eigen::MatrixXf> EditRegionsCuda(
                                    num_push_back * dimension);
   CudaPtr<const u_int32_t> line_seg_idxs_ptr(line_segment_idxs.data(),
                                              num_push_back);
+  // Forward kinematics and CC
+  CudaPtr<const MinimalPlant> plant_ptr(&plant, 1);
+  CudaPtr<const GeometryIndex> robot_geometry_ids_ptr(
+      robot_geometry_ids.data(), robot_geometry_ids.size());
+  CudaPtr<float> transforms_buffer(
+      nullptr, 16 * num_push_back * plant.kin_tree.num_links);
+
+  CudaPtr<uint8_t> is_pair_col_free_buffer(
+      nullptr, plant.num_collision_pairs * num_push_back);
+  CudaPtr<uint8_t> is_config_col_free_buffer(nullptr, num_push_back);
+  CudaPtr<uint8_t> is_geom_to_vox_pair_col_free_buffer(
+      nullptr, robot_geometry_ids.size() * MAX_NUM_VOXELS);
+
+  CudaPtr<float> voxel_buffer(nullptr, 3 * MAX_NUM_VOXELS);
 
   line_start_pts_ptr.copyHostToDevice();
   line_end_pts_ptr.copyHostToDevice();
   samples_ptr.copyHostToDevice();
   line_seg_idxs_ptr.copyHostToDevice();
+  robot_geometry_ids_ptr.copyHostToDevice();
+  plant_ptr.copyHostToDevice();
 
   executeProjectSamplesOntoLineSegmentsKernel(
-      distances_ptr.device, projections_ptr.device, samples_ptr.device,
+      distances_ptr.device, projections_buffer.device, samples_ptr.device,
       line_start_pts_ptr.device, line_end_pts_ptr.device,
       line_seg_idxs_ptr.device, num_push_back, dimension);
-  projections_ptr.copyDeviceToHost();
-  std::cout << "projections\n" << projections_flat << std::endl;
+
+  // todo remove this
+  projections_buffer.copyDeviceToHost();
+
+  // send voxels to GPU
+  cudaMemcpy((void*)voxel_buffer.device, voxels.data(),
+             voxels.size() * sizeof(float), cudaMemcpyHostToDevice);
+
+  // prepare bisection bounds
+  cudaMemcpy((void*)bisection_lower_bounds_buffer.device,
+             projections_buffer.device, num_push_back * dimension * sizeof(float),
+             cudaMemcpyDeviceToDevice);
+
+  cudaMemcpy((void*)bisection_upper_bounds_buffer.device, samples_ptr.device,
+             num_push_back * dimension * sizeof(float),
+             cudaMemcpyDeviceToDevice);
+
+  for (int bisection_step = 0; bisection_step < options.bisection_steps;
+       ++bisection_step) {
+    executeStepConfigToMiddleKernel(
+        updated_configs_buffer.device, bisection_upper_bounds_buffer.device,
+        bisection_lower_bounds_buffer.device, num_push_back, dimension);
+
+    executeForwardKinematicsKernel(transforms_buffer.device,
+                                   updated_configs_buffer.device, num_push_back,
+                                   &(plant_ptr.device->kin_tree));
+
+    executeCollisionFreeVoxelsKernel(
+        is_config_col_free_buffer.device, is_pair_col_free_buffer.device,
+        is_geom_to_vox_pair_col_free_buffer.device, voxel_buffer.device,
+        voxel_radius, plant_ptr.device, robot_geometry_ids_ptr.device,
+        transforms_buffer.device, num_push_back, plant.num_collision_pairs,
+        robot_geometry_ids.size(), voxels.cols());
+
+    executeUpdateBisectionBoundsKernel(
+          bisection_lower_bounds_buffer.device,
+          bisection_upper_bounds_buffer.device,
+          updated_configs_buffer.device,
+          is_config_col_free_buffer.device, num_push_back, dimension);
+
+    executeStoreIfCollisionKernel(optimized_collisions_buffer.device,
+                                  updated_configs_buffer.device,
+                                  is_config_col_free_buffer.device,
+                                  num_push_back, dimension);
+  }
+  optimized_collisions_buffer.copyDeviceToHost();
+  
   // dummy return value
   std::vector<HPolyhedron> edited_regions;
   for (const auto r : regions) {
     edited_regions.push_back(r);
   }
-  return {edited_regions, projections_flat};
+
+  return {edited_regions, {projections, optimized_collisions}};
 }
 
 }  // namespace csdecomp

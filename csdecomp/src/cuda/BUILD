@@ -126,6 +126,7 @@ cuda_library(
     visibility = ["//visibility:public"],
     deps = [
         ":cuda_set_builder_utils",
+        ":cuda_polytope_builder",
         ":cuda_collision_checker",
         "@eigen",
     ],
