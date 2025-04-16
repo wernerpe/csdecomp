@@ -5,6 +5,7 @@
 #include <pybind11/stl.h>
 
 #include "cuda_collision_checker.h"
+#include "cuda_edit_regions.h"
 #include "cuda_hit_and_run_sampling.h"
 #include "cuda_polytope_builder.h"
 #include "cuda_visibility_graph.h"
@@ -126,5 +127,56 @@ void add_cuda_bindings(py::module &m) {
 
     Returns:
         numpy.ndarray: An array of boolean values indicating collision-free status for each configuration.
+    )pbdoc");
+
+  py::class_<EditRegionsOptions>(m, "EditRegionsOptions")
+      .def(py::init<>())
+      .def_readwrite("configuration_margin",
+                     &EditRegionsOptions::configuration_margin)
+      .def_readwrite("bisection_steps", &EditRegionsOptions::bisection_steps)
+      .def_readwrite("max_collisions_per_set",
+                     &EditRegionsOptions::max_collisions_per_set)
+      .def_readwrite("verbose", &EditRegionsOptions::verbose);
+
+  m.def(
+      "EditRegionsCuda",
+      [](const Eigen::MatrixXf &collisions,
+         const Eigen::MatrixXf &line_start_points,
+         const Eigen::MatrixXf &line_end_points,
+         const std::vector<HPolyhedron> &regions, const MinimalPlant &plant,
+         const std::vector<GeometryIndex> &robot_geometry_ids,
+         const VoxelsWrapper &voxels, float voxel_radius,
+         const EditRegionsOptions &options) {
+        return EditRegionsCuda(collisions, line_start_points, line_end_points,
+                               regions, plant, robot_geometry_ids,
+                               voxels.matrix, voxel_radius, options);
+      },
+      py::arg("collisions"), py::arg("line_start_points"),
+      py::arg("line_end_points"), py::arg("regions"), py::arg("plant"),
+      py::arg("robot_geometry_ids"), py::arg("voxels"), py::arg("voxel_radius"),
+      py::arg("options"),
+      R"pbdoc(
+    Refines convex regions by removing collisions detected in trajectories.
+
+    This function implements the recovery mechanism from "Superfast Configuration-Space Convex Set 
+    Computation on GPUs for Online Motion Planning". It takes colliding configurations found in 
+    trajectories and modifies the corresponding convex sets to exclude these collisions while 
+    ensuring that line segments remain contained in the sets.
+
+    Args:
+        collisions (numpy.ndarray): Matrix where each column represents a colliding configuration.
+        line_start_points (numpy.ndarray): Matrix where each column is the start point of a line segment.
+        line_end_points (numpy.ndarray): Matrix where each column is the end point of a line segment.
+        regions (List[HPolyhedron]): Vector of convex regions (polytopes) to be modified.
+        plant (MinimalPlant): Kinematics and collision model of the robot.
+        robot_geometry_ids (List[GeometryIndex]): Indices of robot geometries to check for collisions.
+        voxels (Voxels): Voxel representation of obstacles in the environment.
+        voxel_radius (float): Radius of spheres associated with voxels for collision checking.
+        options (EditRegionsOptions): Configuration options for the region editing process.
+
+    Returns:
+        tuple: A tuple containing:
+            - List[HPolyhedron]: Refined convex regions with collisions removed.
+            - tuple: A pair of matrices containing any line segments that needed to be re-inflated.
     )pbdoc");
 }

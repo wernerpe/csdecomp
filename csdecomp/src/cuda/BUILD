@@ -125,9 +125,9 @@ cuda_library(
     hdrs = ["cuda_edit_regions.h"],
     visibility = ["//visibility:public"],
     deps = [
-        ":cuda_set_builder_utils",
-        ":cuda_polytope_builder",
         ":cuda_collision_checker",
+        ":cuda_polytope_builder",
+        ":cuda_set_builder_utils",
         "@eigen",
     ],
 )
