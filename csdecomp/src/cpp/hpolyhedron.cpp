@@ -89,7 +89,8 @@ HPolyhedron::HPolyhedron(const MinimalHPolyhedron& hpoly) {
   _b = bmin;
 }
 
-HPolyhedron::HPolyhedron(const Eigen::MatrixXf& A, Eigen::VectorXf& b)
+HPolyhedron::HPolyhedron(const Eigen::Ref<const Eigen::MatrixXf>& A,
+                         const Eigen::Ref<const Eigen::VectorXf>& b)
     : _A(A), _b(b), _ambient_dimension(A.cols()) {
   if (A.rows() != b.size()) {
     throw std::invalid_argument("A and b dimensions do not match");
