@@ -294,6 +294,7 @@ cc_test_with_system_python(
     linkopts = [],
     tags = ["manual"],  #only mannualy build for interactive debugging
     deps = [
+        "//csdecomp/src/cpp:urdf_parser",
         "//csdecomp/src/cpp:hpolyhedron",
         "//csdecomp/src/cuda:cuda_edit_regions",
         "//csdecomp/tests:plotting_utils_interactive",

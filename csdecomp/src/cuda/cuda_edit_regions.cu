@@ -4,7 +4,7 @@
 
 namespace csdecomp {
 
-std::vector<HPolyhedron> EditRegionsCuda(
+std::pair<std::vector<HPolyhedron>, Eigen::MatrixXf> EditRegionsCuda(
     const Eigen::MatrixXf& collisions, const Eigen::MatrixXf& line_start_points,
     const Eigen::MatrixXf& line_end_points,
     const std::vector<HPolyhedron> regions, const MinimalPlant& plant,
@@ -29,11 +29,13 @@ std::vector<HPolyhedron> EditRegionsCuda(
   for (const auto& r : regions) {
     assert(r.PointInSet(line_start_points.col(idx)));
     if (!r.PointInSet(line_start_points.col(idx))) {
-      throw std::runtime_error(fmt::format("line start is not contained in region {}", idx));
+      throw std::runtime_error(
+          fmt::format("line start is not contained in region {}", idx));
     }
     assert(r.PointInSet(line_end_points.col(idx)));
     if (!r.PointInSet(line_end_points.col(idx))) {
-      throw std::runtime_error(fmt::format("line end is not contained in region {}", idx));
+      throw std::runtime_error(
+          fmt::format("line end is not contained in region {}", idx));
     }
     ++idx;
   }
@@ -57,9 +59,10 @@ std::vector<HPolyhedron> EditRegionsCuda(
   }
 
   // prepare GPU memory
-  float projections_flat[num_push_back * dimension];
+  Eigen::MatrixXf projections_flat(dimension, num_push_back);
   float distances_flat[num_push_back];
-  CudaPtr<float> projections_ptr(projections_flat, num_push_back * dimension);
+  CudaPtr<float> projections_ptr(projections_flat.data(),
+                                 num_push_back * dimension);
   CudaPtr<float> distances_ptr(distances_flat, num_push_back);
 
   CudaPtr<const float> line_start_pts_ptr(line_start_points.data(),
@@ -82,13 +85,14 @@ std::vector<HPolyhedron> EditRegionsCuda(
       distances_ptr.device, projections_ptr.device, samples_ptr.device,
       line_start_pts_ptr.device, line_end_pts_ptr.device,
       line_seg_idxs_ptr.device, num_push_back, dimension);
-
-  // dummy return value 
+  projections_ptr.copyDeviceToHost();
+  std::cout << "projections\n" << projections_flat << std::endl;
+  // dummy return value
   std::vector<HPolyhedron> edited_regions;
-  for(const auto r: regions){
+  for (const auto r : regions) {
     edited_regions.push_back(r);
   }
-  return edited_regions;
+  return {edited_regions, projections_flat};
 }
 
 }  // namespace csdecomp
