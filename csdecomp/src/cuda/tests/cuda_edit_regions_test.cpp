@@ -119,6 +119,7 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
                       inspector.robot_geometry_ids, vox, voxel_radius, options);
   Eigen::MatrixXf projections = result.second.first;
   Eigen::MatrixXf opt = result.second.second;
+  auto regions_edited = result.first;
   if (std::getenv("BAZEL_TEST") == nullptr && DO_PLOT) {
     Eigen::Matrix2Xf obs_points;
     Eigen::Matrix2Xf centers;
@@ -154,6 +155,9 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
       PlottingUtils::plot(obstacle.row(0), obstacle.row(1),
                           {{"color", "k"}, {"linewidth", "2"}});
     }
+    for(const auto r: regions_edited){
+        PlottingUtils::plot2DHPolyhedron(r, "m", 1000);
+    }
     PlottingUtils::plot(env_points.row(0), env_points.row(1),
                         {{"color", "k"}, {"linewidth", "2"}});
     PlottingUtils::scatter(collisions.row(0), collisions.row(1), 100,
@@ -162,26 +166,29 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
     PlottingUtils::scatter(projections.row(0), projections.row(1), 50,
                            {{"color", "b"}});
 
-    for (int idx_col = 0; idx_col < collisions.cols(); idx_col++) {
-      for (int idx_ls = 0; idx_ls < line_start.cols(); idx_ls++) {
-        matplotlibcpp::plot(
-            {collisions(0, idx_col),
-             projections(0, idx_ls + idx_col*line_start.cols())},
-            {collisions(1, idx_col),
-             projections(1, idx_ls + idx_col*line_start.cols())},
-            {{"color", "k"}, {"linewidth", "1.0"}});
-        matplotlibcpp::plot(
-            {collisions(0, idx_col),
-             opt(0, idx_ls + idx_col*line_start.cols())},
-            {collisions(1, idx_col),
-             opt(1, idx_ls + idx_col*line_start.cols())},
-            {{"color", "r"}, {"linewidth", "3.0"}});
-      }
-    }
+    PlottingUtils::scatter(opt.row(0), opt.row(1), 100,
+                           {{"color", "m"}});
+
+    // for (int idx_col = 0; idx_col < collisions.cols(); idx_col++) {
+    //   for (int idx_ls = 0; idx_ls < line_start.cols(); idx_ls++) {
+    //     matplotlibcpp::plot(
+    //         {collisions(0, idx_col),
+    //          projections(0, idx_ls + idx_col*line_start.cols())},
+    //         {collisions(1, idx_col),
+    //          projections(1, idx_ls + idx_col*line_start.cols())},
+    //         {{"color", "k"}, {"linewidth", "1.0"}});
+    //     // matplotlibcpp::plot(
+    //     //     {collisions(0, idx_col),
+    //     //      opt(0, idx_ls + idx_col*line_start.cols())},
+    //     //     {collisions(1, idx_col),
+    //     //      opt(1, idx_ls + idx_col*line_start.cols())},
+    //     //     {{"color", "r"}, {"linewidth", "3.0"}});
+    //   }
+    // }
     matplotlibcpp::plot(
         {line_start(0, 0), line_start(0, 1), line_start(0, 2), line_end(0, 2)},
         {line_start(1, 0), line_start(1, 1), line_start(1, 2), line_end(1, 2)},
-        {{"color", "g"}, {"linewidth", "2.0"}});
+        {{"color", "g"}, {"linewidth", "4.0"}});
 
     for (size_t vox_id = 0; vox_id < vox.cols(); ++vox_id) {
       PlottingUtils::draw_circle(vox(0, vox_id), vox(1, vox_id), voxel_radius,
