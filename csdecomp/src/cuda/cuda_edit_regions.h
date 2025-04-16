@@ -20,7 +20,7 @@ std::vector<HPolyhedron> EditRegionsCuda(
     const Eigen::MatrixXf& collisions, const Eigen::MatrixXf& line_start_points,
     const Eigen::MatrixXf& line_end_points,
     const std::vector<HPolyhedron> regions,
-    const std::const MinimalPlant& plant,
+    const MinimalPlant& plant,
     const std::vector<GeometryIndex>& robot_geometry_ids, const Voxels& voxels,
     const float voxel_radius, const EditRegionsOptions& options);
 
