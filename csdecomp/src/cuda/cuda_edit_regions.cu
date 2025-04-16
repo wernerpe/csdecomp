@@ -97,6 +97,9 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
         ++num_traj_collisions;
         ++num_col;
       }
+      if (num_col >= options.max_collisions_per_set) {
+        break;
+      }
     }
     num_col_per_ls.push_back(num_col);
   }
@@ -218,7 +221,7 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
                            dimension);
       int curr_num_faces = r.A().rows();
       Anew.topRows(curr_num_faces) = r.A();
-      Eigen::VectorXf bnew;
+      Eigen::VectorXf bnew(r.b().size() + options.max_collisions_per_set);
       bnew.head(curr_num_faces) = r.b();
       for (const auto cand : cand_idxs) {
         Eigen::VectorXf opt = optimized_collisions.col(cand);
@@ -229,7 +232,7 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
           is_opt_contained = true;
         }
 
-        if (!is_opt_contained) {
+        if (is_opt_contained) {
           Eigen::VectorXf proj = projections.col(cand);
           Eigen::VectorXf a_face = opt - proj;
           a_face.normalize();
@@ -253,8 +256,8 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
     } else {
       edited_regions.push_back(r);
     }
-    ++region_idx;
     curr_coll_idx += num_col_per_ls.at(region_idx);
+    ++region_idx;
   }
 
   return {edited_regions, {projections, optimized_collisions}};
