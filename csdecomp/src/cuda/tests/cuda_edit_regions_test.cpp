@@ -119,7 +119,21 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
                       inspector.robot_geometry_ids, vox, voxel_radius, options);
   Eigen::MatrixXf projections = result.second.first;
   Eigen::MatrixXf opt = result.second.second;
+
   auto regions_edited = result.first;
+  int region_idx = 0;
+  for (const auto r : regions_edited) {
+    EXPECT_TRUE(r.PointInSet(line_start.col(region_idx)));
+    EXPECT_TRUE(r.PointInSet(line_end.col(region_idx)));
+    for (int col_id = 0; col_id < opt.cols(); col_id++) {
+      EXPECT_FALSE(r.PointInSet(opt.col(col_id)));
+    }
+    for (int col_id = 0; col_id < collisions.cols(); col_id++) {
+      EXPECT_FALSE(r.PointInSet(collisions.col(col_id)));
+    }
+    region_idx++;
+  }
+
   if (std::getenv("BAZEL_TEST") == nullptr && DO_PLOT) {
     Eigen::Matrix2Xf obs_points;
     Eigen::Matrix2Xf centers;
