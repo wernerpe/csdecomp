@@ -244,7 +244,7 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
               a_face.transpose() * line_end_points.col(region_idx) - b_face;
           float relaxation = std::max(val_1, val_2);
           if (relaxation > 0) {
-            b_face += relaxation;
+            b_face += relaxation + 1e-6;  // helps with numerics
           }
           Anew.row(curr_num_faces) = a_face.transpose();
           bnew(curr_num_faces) = b_face;
