@@ -78,7 +78,8 @@ class HPolyhedron {
    * @param previous_sample The point to check.
    * @return True if the point is inside the polyhedron, false otherwise.
    */
-  const bool PointInSet(const Eigen::VectorXf& previous_sample) const;
+  const bool PointInSet(const Eigen::VectorXf& previous_sample,
+                        float tol = 1e-9) const;
 
   /**
    * @brief Generates a uniform sample from the polyhedron using hit-and-run

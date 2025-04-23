@@ -14,6 +14,7 @@ struct EditRegionsOptions {
   u_int32_t bisection_steps{9};
   u_int32_t max_collisions_per_set{100};
   bool verbose{false};
+  float containment_tol{1e-6};
 };
 
 /**

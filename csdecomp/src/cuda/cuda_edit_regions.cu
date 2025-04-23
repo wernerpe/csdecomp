@@ -1,6 +1,7 @@
 #include <fmt/core.h>
 
 #include <algorithm>
+#include <numeric>
 #include <vector>
 
 #include "cuda_collision_checker.h"
@@ -93,7 +94,8 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
   for (int region_index = 0; region_index < regions.size(); region_index++) {
     int num_col = 0;
     for (int col = 0; col < collisions.cols(); ++col) {
-      if (regions.at(region_index).PointInSet(collisions.col(col))) {
+      if (regions.at(region_index)
+              .PointInSet(collisions.col(col), options.containment_tol)) {
         line_segment_idxs.emplace_back(region_index);
         collisions_to_project.col(num_traj_collisions) = collisions.col(col);
         ++num_traj_collisions;
@@ -105,7 +107,14 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
     }
     num_col_per_ls.push_back(num_col);
   }
+  uint32_t sum =
+      std::accumulate(num_col_per_ls.begin(), num_col_per_ls.end(), 0U);
 
+  if (!sum) {
+    throw std::runtime_error(
+        "[EditRegionsCuda] No collisions are contained in the regions, this is "
+        "not supported.");
+  }
   // prepare GPU memory
   Eigen::MatrixXf projections(dimension, num_traj_collisions);
   Eigen::MatrixXf optimized_collisions(dimension, num_traj_collisions);
