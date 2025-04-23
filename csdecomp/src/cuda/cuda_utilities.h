@@ -49,7 +49,8 @@ struct CudaPtr {
       throw std::runtime_error("Tried to copy from a dangling host pointer!");
     }
 
-    cudaMemcpy((void *)device, host, size * sizeof(T), cudaMemcpyHostToDevice);
+    CUDACHECKERROR(cudaMemcpy((void *)device, host, size * sizeof(T),
+                              cudaMemcpyHostToDevice));
   }
 
   void copyDeviceToHost() {
@@ -57,7 +58,8 @@ struct CudaPtr {
       throw std::runtime_error("Tried to copy to dangling host pointer!");
     }
 
-    cudaMemcpy((void *)host, device, size * sizeof(T), cudaMemcpyDeviceToHost);
+    CUDACHECKERROR(cudaMemcpy((void *)host, device, size * sizeof(T),
+                              cudaMemcpyDeviceToHost));
   }
 };
 
