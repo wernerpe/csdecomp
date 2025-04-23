@@ -157,7 +157,6 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
   line_seg_idxs_ptr.copyHostToDevice();
   robot_geometry_ids_ptr.copyHostToDevice();
   plant_ptr.copyHostToDevice();
-  std::cout << "memory allocated \n";
 
   executeProjectSamplesOntoLineSegmentsKernel(
       distances_buffer.device, projections_buffer.device, samples_ptr.device,
@@ -177,17 +176,8 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
   cudaMemcpy((void*)bisection_upper_bounds_buffer.device, samples_ptr.device,
              num_traj_collisions * dimension * sizeof(float),
              cudaMemcpyDeviceToDevice);
-  std::cout << "pre bisection \n";
   for (int bisection_step = 0; bisection_step < options.bisection_steps;
        ++bisection_step) {
-    cudaDeviceSynchronize();
-    std::cout << "check at bisection step " << bisection_step << "\n";
-    cudaError_t err = cudaGetLastError();
-    if (err != cudaSuccess) {
-      std::cerr << "CUDA error before bisection: " << cudaGetErrorString(err)
-                << std::endl;
-      throw std::runtime_error("CUDA error before bisection");
-    }
     executeStepConfigToMiddleKernel(
         updated_configs_buffer.device, bisection_upper_bounds_buffer.device,
         bisection_lower_bounds_buffer.device, num_traj_collisions, dimension);
@@ -195,70 +185,32 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
     executeForwardKinematicsKernel(
         transforms_buffer.device, updated_configs_buffer.device,
         num_traj_collisions, &(plant_ptr.device->kin_tree));
-    cudaDeviceSynchronize();
-    err = cudaGetLastError();
-    std::cout << "check at middle step " << bisection_step << "\n";
-    if (err != cudaSuccess) {
-      std::cerr << "CUDA error middle bisection: " << cudaGetErrorString(err)
-                << std::endl;
-      throw std::runtime_error("CUDA error middle bisection");
-    }
+
     executeCollisionFreeVoxelsKernel(
         is_config_col_free_buffer.device, is_pair_col_free_buffer.device,
         is_geom_to_vox_pair_col_free_buffer.device, voxel_buffer.device,
         voxel_radius, plant_ptr.device, robot_geometry_ids_ptr.device,
         transforms_buffer.device, num_traj_collisions,
         plant.num_collision_pairs, robot_geometry_ids.size(), voxels.cols());
-    cudaDeviceSynchronize();
-    err = cudaGetLastError();
-    std::cout << "check at post collision step " << bisection_step << "\n";
-    if (err != cudaSuccess) {
-      std::cerr << "CUDA errorpost col: " << cudaGetErrorString(err)
-                << std::endl;
-      throw std::runtime_error("CUDA errorpost col:");
-    }
+
     executeUpdateBisectionBoundsKernel(
         bisection_lower_bounds_buffer.device,
         bisection_upper_bounds_buffer.device, updated_configs_buffer.device,
         is_config_col_free_buffer.device, num_traj_collisions, dimension);
-    cudaDeviceSynchronize();
-    err = cudaGetLastError();
-    std::cout << "check at post bisect step " << bisection_step << "\n";
-    if (err != cudaSuccess) {
-      std::cerr << "CUDA error post bisect: " << cudaGetErrorString(err)
-                << std::endl;
-      throw std::runtime_error("CUDA error post bisect");
-    }
+
     executeStoreIfCollisionKernel(
         optimized_collisions_buffer.device, updated_configs_buffer.device,
         is_config_col_free_buffer.device, num_traj_collisions, dimension);
-    cudaDeviceSynchronize();
-    err = cudaGetLastError();
-    std::cout << "check at post store col " << bisection_step << "\n";
-    if (err != cudaSuccess) {
-      std::cerr << "CUDA error post  store col: " << cudaGetErrorString(err)
-                << std::endl;
-      throw std::runtime_error("CUDA error post store col");
-    }
   }
-  cudaDeviceSynchronize();
 
   executePointToPointDistanceKernel(
       distances_buffer.device, optimized_collisions_buffer.device,
       projections_buffer.device, num_traj_collisions, dimension);
-  cudaDeviceSynchronize();
-  std::cout << "finished particle opt \n";
-  cudaDeviceSynchronize();
 
   optimized_collisions_buffer.copyDeviceToHost();
-  cudaDeviceSynchronize();
-  std::cout << "blah \n";
   projections_buffer.copyDeviceToHost();
-  cudaDeviceSynchronize();
-  std::cout << "blah 2\n";
   distances_buffer.copyDeviceToHost();
-  cudaDeviceSynchronize();
-  std::cout << "finished copy \n";
+
   std::vector<HPolyhedron> edited_regions;
   int region_idx = 0;
   int curr_coll_idx = 0;
