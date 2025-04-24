@@ -110,7 +110,7 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
 
   if (options.verbose) {
     std::cout << fmt::format(
-        "[EditRegionsCuda] Num collisions to be optimized {}",
+        "[EditRegionsCuda] Num collisions to be optimized {}\n",
         num_traj_collisions);
   }
 
@@ -120,7 +120,7 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
   if (!sum) {
     throw std::runtime_error(
         "[EditRegionsCuda] No collisions are contained in the regions, this is "
-        "not supported.");
+        "not supported.\n");
   }
   // prepare GPU memory
   Eigen::MatrixXf projections(dimension, num_traj_collisions);
@@ -227,6 +227,20 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
   projections_buffer.copyDeviceToHost();
   distances_buffer.copyDeviceToHost();
 
+  for (int idx = 0; idx < num_traj_collisions; idx++) {
+    Eigen::VectorXf proj = projections.col(idx);
+    Eigen::VectorXf col_original = collisions.col(idx);
+    Eigen::VectorXf col_opt = optimized_collisions.col(idx);
+    float dist_orig = (proj - col_original).norm();
+    float dist_opt = (proj - col_opt).norm();
+    if (dist_orig < dist_opt) {
+      std::cout << fmt::format(
+          "Something is wrong. the optimized distance {} is larger than the "
+          "original {}\n",
+          dist_opt, dist_orig);
+    }
+  }
+
   std::vector<HPolyhedron> edited_regions;
   int region_idx = 0;
   int curr_coll_idx = 0;
@@ -248,9 +262,23 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
         // check if already redundant
         bool is_opt_contained = false;
         if ((Anew.topRows(curr_num_faces) * opt - bnew.head(curr_num_faces))
-                .maxCoeff() <= 0) {
+                    .maxCoeff() -
+                1e-4 <=
+            0) {
           is_opt_contained = true;
         }
+        // if (options.verbose && !is_opt_contained) {
+        //   std::cout << fmt::format(
+        //       "[EditRegionsCuda] region {} collision found redundant tol {}\n",
+        //       edited_regions.size(),
+        //       (Anew.topRows(curr_num_faces) * opt - bnew.head(curr_num_faces))
+        //           .maxCoeff());
+        //   std::cout << "collision \n"
+        //             << collisions_to_project.col(cand) << std::endl;
+        //   std::cout << "updated collision \n"
+        //             << optimized_collisions.col(cand) << std::endl;
+        //   std::cout << "projection \n" << projections.col(cand) << std::endl;
+        // }
 
         if (is_opt_contained) {
           Eigen::VectorXf proj = projections.col(cand);
