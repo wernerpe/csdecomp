@@ -272,7 +272,7 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
         }
       }
       if (options.verbose) {
-        std::cout << fmt::format("[EditRegionsCuda] region {} added {} faces",
+        std::cout << fmt::format("[EditRegionsCuda] region {} added {} faces\n",
                                  edited_regions.size(),
                                  curr_num_faces - start_num_faces);
       }
@@ -281,7 +281,7 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
     } else {
       if (options.verbose) {
         std::cout << fmt::format(
-            "[EditRegionsCuda] region {} remains unchanged",
+            "[EditRegionsCuda] region {} remains unchanged\n",
             edited_regions.size());
       }
       edited_regions.push_back(r);
