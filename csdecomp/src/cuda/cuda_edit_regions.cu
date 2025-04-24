@@ -107,6 +107,13 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
     }
     num_col_per_ls.push_back(num_col);
   }
+
+  if (options.verbose) {
+    std::cout << fmt::format(
+        "[EditRegionsCuda] Num collisions to be optimized {}",
+        num_traj_collisions);
+  }
+
   uint32_t sum =
       std::accumulate(num_col_per_ls.begin(), num_col_per_ls.end(), 0U);
 
@@ -263,9 +270,18 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
           ++curr_num_faces;
         }
       }
+      if (options.verbose) {
+        std::cout << fmt::format("[EditRegionsCuda] region {} now has {} faces",
+                                 edited_regions.size(), curr_num_faces);
+      }
       edited_regions.push_back(
           HPolyhedron(Anew.topRows(curr_num_faces), bnew.head(curr_num_faces)));
     } else {
+      if (options.verbose) {
+        std::cout << fmt::format(
+            "[EditRegionsCuda] region {} remains unchanged",
+            edited_regions.size());
+      }
       edited_regions.push_back(r);
     }
     curr_coll_idx += num_col_per_ls.at(region_idx);
