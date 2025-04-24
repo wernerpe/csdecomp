@@ -239,6 +239,7 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
       Eigen::MatrixXf Anew(r.A().rows() + options.max_collisions_per_set,
                            dimension);
       int curr_num_faces = r.A().rows();
+      int start_num_faces = curr_num_faces;
       Anew.topRows(curr_num_faces) = r.A();
       Eigen::VectorXf bnew(r.b().size() + options.max_collisions_per_set);
       bnew.head(curr_num_faces) = r.b();
@@ -271,8 +272,9 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
         }
       }
       if (options.verbose) {
-        std::cout << fmt::format("[EditRegionsCuda] region {} now has {} faces",
-                                 edited_regions.size(), curr_num_faces);
+        std::cout << fmt::format("[EditRegionsCuda] region {} added {} faces",
+                                 edited_regions.size(),
+                                 curr_num_faces - start_num_faces);
       }
       edited_regions.push_back(
           HPolyhedron(Anew.topRows(curr_num_faces), bnew.head(curr_num_faces)));
