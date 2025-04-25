@@ -232,21 +232,6 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
   projections_buffer.copyDeviceToHost();
   distances_buffer.copyDeviceToHost();
 
-  for (int idx = 0; idx < num_traj_collisions; idx++) {
-    Eigen::VectorXf proj = projections.col(idx);
-    Eigen::VectorXf col_original = collisions_to_project.col(idx);
-    Eigen::VectorXf col_opt = optimized_collisions.col(idx);
-    float dist_orig = (proj - col_original).norm();
-    float dist_opt = (proj - col_opt).norm();
-    if (dist_orig < dist_opt) {
-      std::cout << fmt::format(
-          "ERROR Something is wrong at idx {}. The optimized distance {} is "
-          "larger than the "
-          "original {}\n",
-          idx, dist_opt, dist_orig);
-    }
-  }
-
   std::vector<HPolyhedron> edited_regions;
   int region_idx = 0;
   int curr_coll_idx = 0;
