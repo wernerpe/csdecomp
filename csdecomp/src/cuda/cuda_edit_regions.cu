@@ -192,6 +192,11 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
   cudaMemcpy((void*)bisection_upper_bounds_buffer.device, samples_ptr.device,
              num_traj_collisions * dimension * sizeof(float),
              cudaMemcpyDeviceToDevice);
+
+  cudaMemcpy((void*)optimized_collisions_buffer.device, samples_ptr.device,
+             num_traj_collisions * dimension * sizeof(float),
+             cudaMemcpyDeviceToDevice);
+
   for (int bisection_step = 0; bisection_step < options.bisection_steps;
        ++bisection_step) {
     executeStepConfigToMiddleKernel(
@@ -229,15 +234,16 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
 
   for (int idx = 0; idx < num_traj_collisions; idx++) {
     Eigen::VectorXf proj = projections.col(idx);
-    Eigen::VectorXf col_original = collisions.col(idx);
+    Eigen::VectorXf col_original = collisions_to_project.col(idx);
     Eigen::VectorXf col_opt = optimized_collisions.col(idx);
     float dist_orig = (proj - col_original).norm();
     float dist_opt = (proj - col_opt).norm();
     if (dist_orig < dist_opt) {
       std::cout << fmt::format(
-          "Something is wrong. the optimized distance {} is larger than the "
+          "ERROR Something is wrong at idx {}. The optimized distance {} is "
+          "larger than the "
           "original {}\n",
-          dist_opt, dist_orig);
+          idx, dist_opt, dist_orig);
     }
   }
 
@@ -267,18 +273,6 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
             0) {
           is_opt_contained = true;
         }
-        // if (options.verbose && !is_opt_contained) {
-        //   std::cout << fmt::format(
-        //       "[EditRegionsCuda] region {} collision found redundant tol {}\n",
-        //       edited_regions.size(),
-        //       (Anew.topRows(curr_num_faces) * opt - bnew.head(curr_num_faces))
-        //           .maxCoeff());
-        //   std::cout << "collision \n"
-        //             << collisions_to_project.col(cand) << std::endl;
-        //   std::cout << "updated collision \n"
-        //             << optimized_collisions.col(cand) << std::endl;
-        //   std::cout << "projection \n" << projections.col(cand) << std::endl;
-        // }
 
         if (is_opt_contained) {
           Eigen::VectorXf proj = projections.col(cand);
