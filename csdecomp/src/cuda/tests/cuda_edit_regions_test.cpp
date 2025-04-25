@@ -110,8 +110,8 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
 
   Eigen::MatrixXf collisions(2, 4);
   // clang-format off
-  collisions << -0.9, 0.9, 1.1, 1.9,
-                 1.0, 1.0,-1.0, 1.9;
+  collisions << -0.9, 0.6, 1.1, 1.9,
+                 1.0, 0.5,-1.0, 1.9;
   // clang-format on
 
   auto result =
@@ -194,6 +194,16 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
 
     cleanupPlotAndPauseForUser();
   }
+  // add extra test to check if the optimized collisions are actually set to the
+  // initial collision if the bisection never hits any obstacles
+  options.bisection_steps = 1;
+
+  auto result2 =
+      EditRegionsCuda(collisions, line_start, line_end, regions, plant,
+                      inspector.robot_geometry_ids, vox, voxel_radius, options);
+  Eigen::MatrixXf optimized_collisions = result2.second.second;
+  float diff = (optimized_collisions.col(1) - collisions.col(1)).norm();
+  EXPECT_LE(diff, 1e-6);
 }
 
 int main(int argc, char** argv) {
