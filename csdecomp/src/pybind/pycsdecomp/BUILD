@@ -42,6 +42,18 @@ cc_library(
 )
 
 cc_library(
+    name = "cpp_utils_bindings",
+    srcs = ["cpp_utils_bindings.h"],
+    hdrs = ["cpp_utils_bindings.h"],
+    copts = ["-Icsdecomp/src/cpp"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":voxel_wrapper",
+        "//csdecomp/src/cpp:linesegment_aabb_checker",
+    ],
+)
+
+cc_library(
     name = "hpolyhedron_bindings",
     srcs = ["hpolyhedron_bindings.h"],
     hdrs = ["hpolyhedron_bindings.h"],
@@ -90,6 +102,7 @@ pybind_extension(
     visibility = ["//visibility:public"],
     deps = [
         ":collision_checker_bindings",
+        ":cpp_utils_bindings",
         ":cuda_bindings",
         ":drm_bindings",
         ":hpolyhedron_bindings",

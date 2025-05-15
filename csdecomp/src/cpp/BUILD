@@ -17,6 +17,17 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "linesegment_aabb_checker",
+    srcs = ["linesegment_aabb_checker.h"],
+    hdrs = ["linesegment_aabb_checker.h"],
+    includes = ["."],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@eigen",
+    ],
+)
+
 #defines shape primitives and scene geometries struct
 cc_library(
     name = "collision_geometry",
