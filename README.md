@@ -1,6 +1,6 @@
 # CSDecomp: Configuration Space Decomposition Toolbox
 
-CSDecomp is a Python package that implements a simple GPU-accelerated collision checker and GPU-accelerated algorithms for computing approximate convex decompositions of robot configuration spaces. The package provides implementations of Dynamic Roadmaps (DRMs) and the Edge Inflation Zero-Order (EI-ZO) algorithm in cuda/cpp as described in our paper "Superfast Configuration-Space Convex Set Computation on GPUs for Online Motion Planning".
+CSDecomp is a Python package that implements a simple GPU-accelerated collision checker and GPU-accelerated algorithms for computing approximate convex decompositions of robot configuration spaces. The package provides implementations of Dynamic Roadmaps (DRMs) and the Edge Inflation Zero-Order (EI-ZO) algorithm in cuda/cpp as described in our paper ["Superfast Configuration-Space Convex Set Computation on GPUs for Online Motion Planning"](https://arxiv.org/pdf/2504.10783).
 
 Contributions are welcome!
 ## Installation
@@ -77,7 +77,7 @@ If you find this code useful, please consider citing our paper:
 @article{werner2024superfast,
   title={Superfast Configuration-Space Convex Set Computation on GPUs for Online Motion Planning},
   author={Werner, Peter and Cheng, Richard and Stewart, Tom and Tedrake, Russ and Rus, Daniela},
-  journal={TBD},
+  journal={arXiv preprint arXiv:2504.10783},
   year={2025}
 }
 ```

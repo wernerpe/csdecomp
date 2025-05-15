@@ -1,6 +1,7 @@
 #include <pybind11/pybind11.h>
 
 #include "collision_checker_bindings.h"
+#include "cpp_utils_bindings.h"
 #include "cuda_bindings.h"
 #include "drm_bindings.h"
 #include "hpolyhedron_bindings.h"
@@ -21,4 +22,5 @@ PYBIND11_MODULE(pycsdecomp_bindings, m) {
   add_collision_checker_bindings(m);
   add_cuda_bindings(m);
   add_drm_bindings(m);
+  add_cpp_utils_bindings(m);
 }
