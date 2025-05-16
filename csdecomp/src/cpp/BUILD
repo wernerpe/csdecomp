@@ -19,7 +19,7 @@ cc_library(
 
 cc_library(
     name = "linesegment_aabb_checker",
-    srcs = ["linesegment_aabb_checker.h"],
+    srcs = ["linesegment_aabb_checker.cpp"],
     hdrs = ["linesegment_aabb_checker.h"],
     includes = ["."],
     visibility = ["//visibility:public"],
