@@ -1,7 +1,6 @@
 #include "linesegment_aabb_checker.h"
 
 namespace csdecomp {
-
 // Define A2 and A3 as static constants
 static const Eigen::Matrix<double, 4, 2> A2 =
     (Eigen::Matrix<double, 4, 2>() << 1, 0, 0, 1, -1, 0, 0, -1).finished();
