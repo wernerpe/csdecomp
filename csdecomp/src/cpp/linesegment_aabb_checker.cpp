@@ -136,6 +136,8 @@ std::vector<std::vector<uint8_t>> PwlPathAABBsIntersecting(
     const Eigen::MatrixXd& p1, const Eigen::MatrixXd& p2,
     const Eigen::MatrixXd& boxes_min, const Eigen::MatrixXd& boxes_max) {
   int N = p1.cols();
+  int dim = p1.rows();
+  assert(dim <= 3 && "This is only implemented for 2 and 3 dimensions");
   std::vector<std::vector<uint8_t>> result;
   for (int segment_idx = 0; segment_idx < N; segment_idx++) {
     result.push_back(LinesegmentAABBsIntersecting(

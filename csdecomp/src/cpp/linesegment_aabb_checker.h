@@ -39,6 +39,18 @@ std::vector<uint8_t> LinesegmentAABBsIntersecting(
     const Eigen::VectorXd& p1, const Eigen::VectorXd& p2,
     const Eigen::MatrixXd& boxes_min, const Eigen::MatrixXd& boxes_max);
 
+/**
+ * Check if a line segment intersects with multible axis-aligned bounding boxes
+ * (AABBs)
+ *
+ * @tparam Vector Type of vector (usually Eigen::Vector2d or Eigen::Vector3d)
+ * @param p1 (dim, N) First endpoints of the line segments
+ * @param p2 (dim, N) Second endpoints of the line segments
+ * @param box_min (dim, N) Minimum corners of the AABBs
+ * @param box_max (dim, N) Maximum corners of the AABBs
+ * @return true if the line segment intersects with the AABB, false otherwise
+ */
+
 std::vector<std::vector<uint8_t>> PwlPathAABBsIntersecting(
     const Eigen::MatrixXd& p1, const Eigen::MatrixXd& p2,
     const Eigen::MatrixXd& boxes_min, const Eigen::MatrixXd& boxes_max);
