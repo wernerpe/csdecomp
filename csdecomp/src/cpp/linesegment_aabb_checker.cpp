@@ -132,4 +132,16 @@ std::vector<uint8_t> LinesegmentAABBsIntersecting(
   return results;
 }
 
+std::vector<std::vector<uint8_t>> PwlPathAABBsIntersecting(
+    const Eigen::MatrixXd& p1, const Eigen::MatrixXd& p2,
+    const Eigen::MatrixXd& boxes_min, const Eigen::MatrixXd& boxes_max) {
+  int N = p1.cols();
+  std::vector<std::vector<uint8_t>> result;
+  for (int segment_idx = 0; segment_idx < N; segment_idx++) {
+    result.push_back(LinesegmentAABBsIntersecting(
+        p1.col(segment_idx), p2.col(segment_idx), boxes_min, boxes_max));
+  }
+  return result;
+}
+
 }  // namespace csdecomp
