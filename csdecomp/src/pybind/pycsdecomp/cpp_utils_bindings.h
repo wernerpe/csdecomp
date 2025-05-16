@@ -25,4 +25,25 @@ void add_cpp_utils_bindings(py::module &m) {
         "otherwise.\n\n"
         "Note:\n"
         "    All input vectors must have the same dimension (2 or 3).");
+  m.def(
+      "LinesegmentAABBsIntersecting", &csdecomp::LinesegmentAABBsIntersecting,
+      py::arg("p1"), py::arg("p2"), py::arg("boxes_min"), py::arg("boxes_max"),
+      "Check if a line segment intersects with multiple axis-aligned "
+      "bounding boxes "
+      "(AABBs).\n\n"
+      "Args:\n"
+      "    p1 (numpy.ndarray): First endpoint of the line segment.\n"
+      "    p2 (numpy.ndarray): Second endpoint of the line segment.\n"
+      "    boxes_min (numpy.ndarray): Minimum corners of the AABBs as a matrix "
+      "of shape (dim, N).\n"
+      "    boxes_max (numpy.ndarray): Maximum corners of the AABBs as a matrix "
+      "of shape (dim, N).\n\n"
+      "Returns:\n"
+      "    list: A list of boolean values, where True indicates the line "
+      "segment intersects\n"
+      "          with the corresponding AABB, False otherwise.\n\n"
+      "Note:\n"
+      "    The dimension of p1 and p2 must match the number of rows in "
+      "boxes_min and boxes_max.\n"
+      "    box_min and box_max must have the same shape.");
 }
