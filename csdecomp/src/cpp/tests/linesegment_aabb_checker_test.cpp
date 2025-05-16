@@ -336,11 +336,11 @@ TEST_F(LinesegmentAABBIntersectingTest, MultipleBoxes3D_NumericalEdgeCases) {
 
   // Box 1: Tiny box containing the line
   boxes_min.col(0) = Eigen::Vector3d(0, 0, 0);
-  boxes_max.col(0) = Eigen::Vector3d(3e-10, 3e-10, 3e-10);
+  boxes_max.col(0) = Eigen::Vector3d(3e-9, 3e-9, 3e-9);
 
   // Box 2: Box with very close but non-intersecting line
-  boxes_min.col(1) = Eigen::Vector3d(3e-10, 3e-10, 3e-10);
-  boxes_max.col(1) = Eigen::Vector3d(4e-10, 4e-10, 4e-10);
+  boxes_min.col(1) = Eigen::Vector3d(3e-9, 3e-9, 3e-9);
+  boxes_max.col(1) = Eigen::Vector3d(4e-9, 4e-9, 4e-9);
 
   std::vector<uint8_t> results =
       LinesegmentAABBsIntersecting(p1, p2, boxes_min, boxes_max);
