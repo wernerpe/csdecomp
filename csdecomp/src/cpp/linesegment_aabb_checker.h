@@ -39,4 +39,8 @@ std::vector<uint8_t> LinesegmentAABBsIntersecting(
     const Eigen::VectorXd& p1, const Eigen::VectorXd& p2,
     const Eigen::MatrixXd& boxes_min, const Eigen::MatrixXd& boxes_max);
 
+std::vector<std::vector<uint8_t>> PwlPathAABBsIntersecting(
+    const Eigen::MatrixXd& p1, const Eigen::MatrixXd& p2,
+    const Eigen::MatrixXd& boxes_min, const Eigen::MatrixXd& boxes_max);
+
 }  // namespace csdecomp
