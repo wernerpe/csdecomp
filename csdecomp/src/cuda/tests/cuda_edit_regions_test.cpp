@@ -128,7 +128,7 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
   }
 
   auto result = EditRegionsCuda(
-      collisions, line_segment_idxs, line_start, line_end, regions, plant,
+      repeated_collisions, line_segment_idxs, line_start, line_end, regions, plant,
       inspector.robot_geometry_ids, vox, voxel_radius, options);
   Eigen::MatrixXf projections = result.second.first;
   Eigen::MatrixXf opt = result.second.second;
@@ -211,9 +211,9 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
   // initial collision if the bisection never hits any obstacles
   options.bisection_steps = 1;
 
-  auto result2 =
-      EditRegionsCuda(collisions, line_start, line_end, regions, plant,
-                      inspector.robot_geometry_ids, vox, voxel_radius, options);
+  auto result2 = EditRegionsCuda(
+      repeated_collisions, line_segment_idxs, line_start, line_end, regions, plant,
+      inspector.robot_geometry_ids, vox, voxel_radius, options);
   Eigen::MatrixXf optimized_collisions = result2.second.second;
   float diff = (optimized_collisions.col(1) - collisions.col(1)).norm();
   EXPECT_LE(diff, 1e-6);
