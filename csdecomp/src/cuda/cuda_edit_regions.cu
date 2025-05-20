@@ -43,6 +43,7 @@ std::vector<size_t> argsort_slice(const float* arr, size_t start, size_t end) {
 
 std::pair<std::vector<HPolyhedron>, std::pair<Eigen::MatrixXf, Eigen::MatrixXf>>
 EditRegionsCuda(const Eigen::MatrixXf& collisions,
+                const std::vector<u_int32_t>& line_segment_idxs,
                 const Eigen::MatrixXf& line_start_points,
                 const Eigen::MatrixXf& line_end_points,
                 const std::vector<HPolyhedron> regions,
@@ -85,28 +86,12 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
   const int dimension = regions.at(0).ambient_dimension();
 
   // Determine what collisions are contained in which set
-  std::vector<u_int32_t> line_segment_idxs;
-  std::vector<u_int32_t> num_col_per_ls;
-  line_segment_idxs.reserve(regions.size() * collisions.cols());
-  Eigen::MatrixXf collisions_to_project(dimension,
-                                        regions.size() * collisions.cols());
-  int num_traj_collisions = 0;
-  for (int region_index = 0; region_index < regions.size(); region_index++) {
-    int num_col = 0;
-    for (int col = 0; col < collisions.cols(); ++col) {
-      if (regions.at(region_index)
-              .PointInSet(collisions.col(col), options.containment_tol)) {
-        line_segment_idxs.emplace_back(region_index);
-        collisions_to_project.col(num_traj_collisions) = collisions.col(col);
-        ++num_traj_collisions;
-        ++num_col;
-      }
-      if (num_col >= options.max_collisions_per_set) {
-        break;
-      }
-    }
-    num_col_per_ls.push_back(num_col);
+  std::vector<u_int32_t> num_col_per_ls(regions.size(), 0);
+
+  for (const auto lsi : line_segment_idxs) {
+    num_col_per_ls.at(lsi) += 1;
   }
+  int num_traj_collisions = collisions.cols();
 
   if (options.verbose) {
     std::cout << fmt::format(
@@ -147,7 +132,7 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
   CudaPtr<const float> line_end_pts_ptr(line_end_points.data(),
                                         line_end_points.size());
 
-  CudaPtr<const float> samples_ptr(collisions_to_project.data(),
+  CudaPtr<const float> samples_ptr(collisions.data(),
                                    num_traj_collisions * dimension);
   CudaPtr<const u_int32_t> line_seg_idxs_ptr(line_segment_idxs.data(),
                                              num_traj_collisions);
@@ -241,12 +226,12 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
           argsort_slice(distances_flat, curr_coll_idx,
                         curr_coll_idx + num_col_per_ls.at(region_idx));
       // now loop through in ascending order and add faces
-      Eigen::MatrixXf Anew(r.A().rows() + options.max_collisions_per_set,
+      Eigen::MatrixXf Anew(r.A().rows() + num_col_per_ls.at(region_idx),
                            dimension);
       int curr_num_faces = r.A().rows();
       int start_num_faces = curr_num_faces;
       Anew.topRows(curr_num_faces) = r.A();
-      Eigen::VectorXf bnew(r.b().size() + options.max_collisions_per_set);
+      Eigen::VectorXf bnew(r.b().size() + num_col_per_ls.at(region_idx));
       bnew.head(curr_num_faces) = r.b();
       for (const auto cand : cand_idxs) {
         Eigen::VectorXf opt = optimized_collisions.col(cand);
