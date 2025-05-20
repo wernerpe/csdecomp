@@ -134,27 +134,27 @@ void add_cuda_bindings(py::module &m) {
       .def_readwrite("configuration_margin",
                      &EditRegionsOptions::configuration_margin)
       .def_readwrite("bisection_steps", &EditRegionsOptions::bisection_steps)
-      .def_readwrite("max_collisions_per_set",
-                     &EditRegionsOptions::max_collisions_per_set)
       .def_readwrite("verbose", &EditRegionsOptions::verbose);
 
   m.def(
       "EditRegionsCuda",
       [](const Eigen::MatrixXf &collisions,
+         const std::vector<u_int32_t> &line_segment_idxs,
          const Eigen::MatrixXf &line_start_points,
          const Eigen::MatrixXf &line_end_points,
          const std::vector<HPolyhedron> &regions, const MinimalPlant &plant,
          const std::vector<GeometryIndex> &robot_geometry_ids,
          const VoxelsWrapper &voxels, float voxel_radius,
          const EditRegionsOptions &options) {
-        return EditRegionsCuda(collisions, line_start_points, line_end_points,
-                               regions, plant, robot_geometry_ids,
-                               voxels.matrix, voxel_radius, options);
+        return EditRegionsCuda(collisions, line_segment_idxs, line_start_points,
+                               line_end_points, regions, plant,
+                               robot_geometry_ids, voxels.matrix, voxel_radius,
+                               options);
       },
-      py::arg("collisions"), py::arg("line_start_points"),
-      py::arg("line_end_points"), py::arg("regions"), py::arg("plant"),
-      py::arg("robot_geometry_ids"), py::arg("voxels"), py::arg("voxel_radius"),
-      py::arg("options"),
+      py::arg("collisions"), py::arg("line_segment_idxs"),
+      py::arg("line_start_points"), py::arg("line_end_points"),
+      py::arg("regions"), py::arg("plant"), py::arg("robot_geometry_ids"),
+      py::arg("voxels"), py::arg("voxel_radius"), py::arg("options"),
       R"pbdoc(
     Refines convex regions by removing collisions detected in trajectories.
 
@@ -165,6 +165,7 @@ void add_cuda_bindings(py::module &m) {
 
     Args:
         collisions (numpy.ndarray): Matrix where each column represents a colliding configuration.
+        line_segment_idxs (List[int]): List of line segment indices which indicate which line segment to use for the optimization of each collision.
         line_start_points (numpy.ndarray): Matrix where each column is the start point of a line segment.
         line_end_points (numpy.ndarray): Matrix where each column is the end point of a line segment.
         regions (List[HPolyhedron]): Vector of convex regions (polytopes) to be modified.

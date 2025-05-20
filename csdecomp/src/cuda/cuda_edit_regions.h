@@ -12,9 +12,7 @@ namespace csdecomp {
 struct EditRegionsOptions {
   float configuration_margin{0.01};
   u_int32_t bisection_steps{9};
-  u_int32_t max_collisions_per_set{100};
   bool verbose{false};
-  float containment_tol{1e-6};
 };
 
 /**
@@ -58,6 +56,7 @@ struct EditRegionsOptions {
 
 std::pair<std::vector<HPolyhedron>, std::pair<Eigen::MatrixXf, Eigen::MatrixXf>>
 EditRegionsCuda(const Eigen::MatrixXf& collisions,
+                const std::vector<u_int32_t>& line_segment_idxs,
                 const Eigen::MatrixXf& line_start_points,
                 const Eigen::MatrixXf& line_end_points,
                 const std::vector<HPolyhedron> regions,

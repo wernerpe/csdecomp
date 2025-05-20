@@ -113,10 +113,23 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
   collisions << -0.9, 0.6, 1.1, 1.9,
                  1.0, 0.5,-1.0, 1.9;
   // clang-format on
+  Eigen::MatrixXf repeated_collisions(2, 4 * 3);
 
-  auto result =
-      EditRegionsCuda(collisions, line_start, line_end, regions, plant,
-                      inspector.robot_geometry_ids, vox, voxel_radius, options);
+  // Fill the new matrix by copying the original matrix 3 times horizontally
+  for (int i = 0; i < 3; ++i) {
+    repeated_collisions.block(0, i * 4, 2, 4) = collisions;
+  }
+  std::vector<u_int32_t> line_segment_idxs(
+      line_start.cols() * collisions.cols(), 0);
+  // Set values for index 1 and 2
+  for (int i = 0; i < 4; ++i) {
+    line_segment_idxs[4 + i] = 1;  // Set the second group to 1
+    line_segment_idxs[8 + i] = 2;  // Set the third group to 2
+  }
+
+  auto result = EditRegionsCuda(
+      collisions, line_segment_idxs, line_start, line_end, regions, plant,
+      inspector.robot_geometry_ids, vox, voxel_radius, options);
   Eigen::MatrixXf projections = result.second.first;
   Eigen::MatrixXf opt = result.second.second;
 
