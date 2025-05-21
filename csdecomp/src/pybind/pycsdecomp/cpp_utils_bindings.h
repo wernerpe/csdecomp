@@ -12,7 +12,7 @@ using namespace csdecomp;
 
 void add_cpp_utils_bindings(py::module& m) {
   // Add the LinesegmentAABBIntersecting function for VectorXd
-  m.def("LinesegmentAABBIntersecting", &csdecomp::LinesegmentAABBIntersecting,
+  m.def("LinesegmentAABBIntersecting", &LinesegmentAABBIntersecting,
         py::arg("p1"), py::arg("p2"), py::arg("box_min"), py::arg("box_max"),
         "Check if a line segment intersects with an axis-aligned bounding box "
         "(AABB).\n\n"
@@ -27,7 +27,7 @@ void add_cpp_utils_bindings(py::module& m) {
         "Note:\n"
         "    All input vectors must have the same dimension (2 or 3).");
   m.def(
-      "LinesegmentAABBsIntersecting", &csdecomp::LinesegmentAABBsIntersecting,
+      "LinesegmentAABBsIntersecting", &LinesegmentAABBsIntersecting,
       py::arg("p1"), py::arg("p2"), py::arg("boxes_min"), py::arg("boxes_max"),
       "Check if a line segment intersects with multiple axis-aligned "
       "bounding boxes "
@@ -49,8 +49,8 @@ void add_cpp_utils_bindings(py::module& m) {
       "    box_min and box_max must have the same shape.");
 
   m.def(
-      "PwlPathAABBsIntersecting", &csdecomp::PwlPathAABBsIntersecting,
-      py::arg("p1"), py::arg("p2"), py::arg("boxes_min"), py::arg("boxes_max"),
+      "PwlPathAABBsIntersecting", &PwlPathAABBsIntersecting, py::arg("p1"),
+      py::arg("p2"), py::arg("boxes_min"), py::arg("boxes_max"),
       "Check if a line segment intersects with multiple axis-aligned "
       "bounding boxes "
       "(AABBs).\n\n"
@@ -72,23 +72,8 @@ void add_cpp_utils_bindings(py::module& m) {
       "    box_min and box_max must have the same shape.");
 
   m.def(
-      "DistanceLinesegmentAABB",
-      [](const Eigen::VectorXd& p1, const Eigen::VectorXd& p2,
-         const Eigen::VectorXd& box_min, const Eigen::VectorXd& box_max,
-         const int maxit, const double tol) {
-        // Call the C++ function
-        auto result = csdecomp::DistanceLinesegmentAABB(p1, p2, box_min,
-                                                        box_max, maxit, tol);
-
-        // Convert the tuple to a Python dictionary for better usability
-        py::dict output;
-        output["projected_point"] = std::get<0>(result);  // p_proj
-        output["optimal_point"] = std::get<1>(result);    // p_optimal
-        output["distance"] = std::get<2>(result);         // distance
-
-        return output;
-      },
-      py::arg("p1"), py::arg("p2"), py::arg("box_min"), py::arg("box_max"),
+      "DistanceLinesegmentAABB", &DistanceLinesegmentAABB, py::arg("p1"),
+      py::arg("p2"), py::arg("box_min"), py::arg("box_max"),
       py::arg("maxit") = 100, py::arg("tol") = 1e-9,
       "Calculate the closest point and distance between a line segment and an "
       "AABB.\n\n"
