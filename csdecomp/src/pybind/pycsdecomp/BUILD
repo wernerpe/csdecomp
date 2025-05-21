@@ -49,6 +49,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":voxel_wrapper",
+        "//csdecomp/src/cpp:distance_aabb_linesegment",
         "//csdecomp/src/cpp:linesegment_aabb_checker",
     ],
 )

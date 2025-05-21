@@ -28,6 +28,17 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "distance_aabb_linesegment",
+    srcs = ["distance_aabb_linesegment.cpp"],
+    hdrs = ["distance_aabb_linesegment.h"],
+    includes = ["."],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@eigen",
+    ],
+)
+
 #defines shape primitives and scene geometries struct
 cc_library(
     name = "collision_geometry",
