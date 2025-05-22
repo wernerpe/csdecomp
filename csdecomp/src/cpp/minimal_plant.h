@@ -28,11 +28,8 @@ struct MinimalPlant {
 
   /**
    * @brief Flattened array of collision pair indices.
-   * @note The size of this array is calculated based on the maximum number of
-   * possible pairs given MAX_NUM_STATIC_COLLISION_GEOMETRIES.
    */
-  GeometryIndex collision_pairs_flat[MAX_NUM_STATIC_COLLISION_GEOMETRIES *
-                                     (MAX_NUM_STATIC_COLLISION_GEOMETRIES - 1)];
+  GeometryIndex collision_pairs_flat[MAX_NUM_STATIC_COLLISION_PAIRS];
 
   /** @brief The number of collision geometries in the scene. */
   int32_t num_scene_geometries;
@@ -70,8 +67,7 @@ class Plant {
     MinimalKinematicTree mtree = kin_tree_.getMyMinimalKinematicTreeStruct();
     CollisionPairMatrix cpm = inspector_.getCollisionPairMatrix();
 
-    assert(cpm.cols() <= MAX_NUM_STATIC_COLLISION_GEOMETRIES *
-                             (MAX_NUM_STATIC_COLLISION_GEOMETRIES - 1) / 2);
+    assert(cpm.cols() <= MAX_NUM_STATIC_COLLISION_PAIRS);
     // Calculate the number of geometries to copy
     int num_geometries =
         std::min(static_cast<int>(scene_collision_geometries_.size()),
@@ -96,9 +92,6 @@ class Plant {
     mplant.kin_tree.num_joints = mtree.num_joints;
     mplant.kin_tree.num_links = mtree.num_links;
     mplant.num_collision_pairs = cpm.cols();
-    assert(mplant.num_collision_pairs <=
-           MAX_NUM_STATIC_COLLISION_GEOMETRIES *
-               (MAX_NUM_STATIC_COLLISION_GEOMETRIES - 1) / 2);
 
     std::copy(cpm.data(), cpm.data() + 2 * cpm.cols(),
               mplant.collision_pairs_flat);

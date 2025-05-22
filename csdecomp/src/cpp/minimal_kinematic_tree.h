@@ -4,8 +4,8 @@
 namespace csdecomp {
 
 #define MAX_CHILD_JOINT_COUNT 15
-#define MAX_LINKS_PER_TREE 1000
-#define MAX_JOINTS_PER_TREE 1000
+#define MAX_LINKS_PER_TREE 100
+#define MAX_JOINTS_PER_TREE 100
 
 /**
  * @brief Enumeration of joint types in the kinematic tree.
