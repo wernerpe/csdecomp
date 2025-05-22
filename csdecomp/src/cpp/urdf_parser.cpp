@@ -191,9 +191,7 @@ const MinimalPlant URDFParser::getMinimalPlant() const {
   plant.kin_tree.num_joints = mtree.num_joints;
   plant.kin_tree.num_links = mtree.num_links;
   plant.num_collision_pairs = cpm.cols();
-  assert(plant.num_collision_pairs <=
-         MAX_NUM_STATIC_COLLISION_GEOMETRIES *
-             (MAX_NUM_STATIC_COLLISION_GEOMETRIES - 1) / 2);
+  assert(plant.num_collision_pairs <= MAX_NUM_STATIC_COLLISION_PAIRS);
 
   std::copy(cpm.data(), cpm.data() + 2 * cpm.cols(),
             plant.collision_pairs_flat);
