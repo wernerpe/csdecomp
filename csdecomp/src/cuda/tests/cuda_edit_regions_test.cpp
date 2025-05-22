@@ -135,7 +135,7 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
 
   auto regions_edited = result.first;
   int region_idx = 0;
-  for (const auto r : regions_edited) {
+  for (const auto& r : regions_edited) {
     EXPECT_TRUE(r.PointInSet(line_start.col(region_idx)));
     EXPECT_TRUE(r.PointInSet(line_end.col(region_idx)));
     for (int col_id = 0; col_id < opt.cols(); col_id++) {

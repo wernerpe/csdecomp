@@ -85,13 +85,30 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
 
   const int dimension = regions.at(0).ambient_dimension();
 
-  // Determine what collisions are contained in which set
+  // sort collisions by line segment index
   std::vector<u_int32_t> num_col_per_ls(regions.size(), 0);
-
-  for (const auto lsi : line_segment_idxs) {
+  std::vector<u_int32_t> cum_sum_num_col_per_ls(regions.size(), 0);
+  for (const auto& lsi : line_segment_idxs) {
     num_col_per_ls.at(lsi) += 1;
   }
+  for (int i = 0; i < regions.size() - 1; ++i) {
+    cum_sum_num_col_per_ls.at(i + 1) =
+        cum_sum_num_col_per_ls.at(i) + num_col_per_ls.at(i);
+  }
   int num_traj_collisions = collisions.cols();
+  Eigen::MatrixXf collisions_reordered(dimension, num_traj_collisions);
+  std::vector<u_int32_t> line_segment_idxs_reordered(num_traj_collisions, 0);
+  Eigen::VectorXf curr_count(regions.size());
+  curr_count.setZero();
+  for (int collision_idx = 0; collision_idx < num_traj_collisions;
+       ++collision_idx) {
+    u_int32_t ls_id = line_segment_idxs.at(collision_idx);
+    u_int32_t base_id = cum_sum_num_col_per_ls.at(ls_id);
+    collisions_reordered.col(base_id + curr_count(ls_id)) =
+        collisions.col(collision_idx);
+    line_segment_idxs_reordered.at(base_id + curr_count(ls_id)) = ls_id;
+    curr_count(ls_id) += 1;
+  }
 
   if (options.verbose) {
     std::cout << fmt::format(
@@ -132,9 +149,9 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
   CudaPtr<const float> line_end_pts_ptr(line_end_points.data(),
                                         line_end_points.size());
 
-  CudaPtr<const float> samples_ptr(collisions.data(),
+  CudaPtr<const float> samples_ptr(collisions_reordered.data(),
                                    num_traj_collisions * dimension);
-  CudaPtr<const u_int32_t> line_seg_idxs_ptr(line_segment_idxs.data(),
+  CudaPtr<const u_int32_t> line_seg_idxs_ptr(line_segment_idxs_reordered.data(),
                                              num_traj_collisions);
   // Forward kinematics and CC
   CudaPtr<const MinimalPlant> plant_ptr(&plant, 1);
@@ -238,12 +255,11 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
         // check if already redundant
         bool is_opt_contained = false;
         if ((Anew.topRows(curr_num_faces) * opt - bnew.head(curr_num_faces))
-                    .maxCoeff() -
-                1e-4 <=
-            0) {
+                .maxCoeff() < 0) {
           is_opt_contained = true;
         }
 
+        // only add face if the optimized collision is contained in the region.
         if (is_opt_contained) {
           Eigen::VectorXf proj = projections.col(cand);
           Eigen::VectorXf a_face = opt - proj;
@@ -256,7 +272,7 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
               a_face.transpose() * line_end_points.col(region_idx) - b_face;
           float relaxation = std::max(val_1, val_2);
           if (relaxation > 0) {
-            b_face += relaxation;  // helps with numerics
+            b_face += relaxation + 1e-7;  // helps with numerics
           }
           Anew.row(curr_num_faces) = a_face.transpose();
           bnew(curr_num_faces) = b_face;
