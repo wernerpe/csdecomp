@@ -188,7 +188,7 @@ py_wheel(
     python_tag = get_my_python_tag(),
     requires = [
         "setuptools",
-        "numpy==1.26.4",
+        "numpy>=2.0.0",
     ],
     strip_path_prefixes = [
         "csdecomp/src/pybind/pycsdecomp",  # Adjust this path to match your project structure
