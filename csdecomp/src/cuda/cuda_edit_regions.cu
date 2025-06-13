@@ -70,12 +70,10 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
   }
   int idx = 0;
   for (const auto& r : regions) {
-    assert(r.PointInSet(line_start_points.col(idx)));
     if (!r.PointInSet(line_start_points.col(idx))) {
       throw std::runtime_error(
           fmt::format("line start is not contained in region {}", idx));
     }
-    assert(r.PointInSet(line_end_points.col(idx)));
     if (!r.PointInSet(line_end_points.col(idx))) {
       throw std::runtime_error(
           fmt::format("line end is not contained in region {}", idx));
@@ -272,7 +270,7 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
               a_face.transpose() * line_end_points.col(region_idx) - b_face;
           float relaxation = std::max(val_1, val_2);
           if (relaxation > 0) {
-            b_face += relaxation + 1e-7;  // helps with numerics
+            b_face += relaxation + 2e-6;  // helps with numerics
           }
           Anew.row(curr_num_faces) = a_face.transpose();
           bnew(curr_num_faces) = b_face;
