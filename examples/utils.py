@@ -5,6 +5,7 @@ from pydrake.all import (
     MultibodyPlant,
     Context
 )
+import scsplanning as scs
 
 CSD_EXAMPLES_ROOT = os.path.dirname(__file__)
 
@@ -163,3 +164,4 @@ def get_drm_summary(drm : pycsdecomp.DRM, do_plot = False, max_nodes_to_plot = 1
     write_graph_summary(G)
     if do_plot:
         plot_graph_from_adjacency_list(drm.node_adjacency_map, max_nodes_to_plot)
+
