@@ -16,6 +16,8 @@ from cspace_utils.plotting import plot_points, plot_triad
 import pycsdecomp as csd
 import numpy as np
 import time
+from planning_utils import MintimeSCSWithPathFixing, CollisionChecker, RegionCorrector, CSD_inflate_edges_given_pwl_path
+
 
 directives_path = CSD_EXAMPLES_ROOT+\
     '/../csdecomp/tests/test_assets/directives/kinova_sens_on_table.yml'
@@ -55,7 +57,11 @@ query : QueryObject = scene_graph.get_query_output_port()\
 inspector : SceneGraphInspector = query.inspector()
 meshcat.SetProperty('/drake/proximity', 'visible', True)
 
-csd_plant = csd.convert_drake_plant_to_csd_plant(plant, inspector)
+csd_plant = csd.convert_drake_plant_to_csd_plant(plant, plant_context, inspector)
+csd_mplant= csd_plant.getMinimalPlant()
+kt = csd_plant.getKinematicTree()
+csdecomp_domain = csd.HPolyhedron()
+csdecomp_domain.MakeBox(kt.get_position_lower_limits(), kt.get_position_upper_limits())
 
 pl_opts = csd.DrmPlannerOptions()
 pl_opts.max_iterations_steering_to_node = 10
@@ -71,9 +77,32 @@ except:
     raise ValueError(
     " Could not load roadmap.Make sure you have run the 'build_DRM.py example")
 
+csd_checker = CollisionChecker(csd_mplant,
+                               csd_plant.getRobotGeometryIds())
+csd_region_corrector = RegionCorrector(csd_mplant,
+                                       csd_plant.getRobotGeometryIds(),
+                                       step_back= 0.01)
+
+options = csd.EizoOptions()
+options.num_particles = 10000
+options.bisection_steps = 9
+options.configuration_margin = 0.1
+options.delta = 0.01
+options.epsilon = 0.01
+options.tau = 0.5
+options.mixing_steps = 100
+options.max_hyperplanes_per_iteration = 10
+edge_inflator = csd.CudaEdgeInflator(csd_mplant, csd_plant.getRobotGeometryIds(), options, csdecomp_domain)
+
+vel_sc_lim = 1.
+acc_sc_lim = 1.
+vel_limits = [-vel_sc_lim*np.ones(7), vel_sc_lim*np.ones(7)]
+acc_limits = [-acc_sc_lim*np.ones(7), acc_sc_lim*np.ones(7)]
+
+input("Press 'Enter' to start planning")
+drm_start = time.time()
 locs, cols, radius = get_fake_voxel_map()
 plot_points(meshcat, locs, 'fake voxels', size=radius, color = cols)
-
 csd_vox = csd.Voxels(locs.T)
 drm_planner.BuildCollisionSet(csd_vox)
 
@@ -83,14 +112,56 @@ plant.SetPositions(plant_context, start_config)
 diagram.ForcedPublish(diagram_context)
 
 goal_pose = RigidTransform(np.array([0.6, -0.5, 0.2]))
-goal_config = drm_planner.GetClosestNonCollidingConfigurationsByPose(goal_pose.GetAsMatrix4(), 100, 0.2)[0]
-succ, plan = drm_planner.Plan(start_config, goal_config,csd_vox, radius)
 plot_triad(goal_pose, meshcat, 'goal_pose', size= 0.1)
 
+# Note: In the paper we solve a full nonlinear collision-free IK problem. 
+# Here, we simply select a close node of the roadmap.
+goal_config = drm_planner.GetClosestNonCollidingConfigurationsByPose(goal_pose.GetAsMatrix4(), 100, 0.2)[0]
+succ, plan = drm_planner.Plan(start_config, goal_config,csd_vox, radius)
+assert succ, "DRM found no solution"
+
+reg_start = time.time()
+regions, edges = CSD_inflate_edges_given_pwl_path(plan, edge_inflator, csd_vox, radius)
+reg_end = time.time()
+
+traj, sol_info = MintimeSCSWithPathFixing(start_config, 
+                            goal_config,
+                            regions, 
+                            edges,
+                            vel_limits,
+                            acc_limits,
+                            csd_checker,
+                            csd_region_corrector,
+                            edge_inflator,
+                            csd_vox,
+                            radius,
+                            max_attempts=20,
+                            degree=6)
+to_end = time.time()
+
+assert sol_info['traj_col_free'], "Failed to find a collision-free trajectory"
+
+print(f"""Plan Found
+DRM Time: {reg_start-drm_start: .3f} [s]
+Regions Time: {reg_end-reg_start: .3f} [s]   
+SCS Time: {to_end- reg_end: .3f} [s]
+Traj Cost: {sol_info['cost']} [s]
+Regions: {len(regions)}
+""")
+
 wps = densify_waypoints(plan, plant, plant_context)
-input("Press 'Enter' to play the motion plan")
+input("Press 'Enter' to play the PWL DRM motion plan")
 for w in wps:
     plant.SetPositions(plant_context, w)
     diagram.ForcedPublish(diagram_context)
     time.sleep(0.01)
-print('here')
+input("Press 'Enter' to play the final trajectory")
+N = 200
+times = np.linspace(traj.start_time(), traj.end_time(), N)
+dt = (traj.end_time()-traj.start_time())/N
+wps = traj.vector_values(times)
+for w in wps.T:
+    plant.SetPositions(plant_context, w)
+    diagram.ForcedPublish(diagram_context)
+    time.sleep(dt)
+input("Press 'Enter' to close the program")

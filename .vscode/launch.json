@@ -94,6 +94,27 @@
             "miDebuggerPath": "/usr/bin/gdb"
         },
         {
+            "name": "Debug linesegment_aabb_checker_test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bazel-bin/csdecomp/src/cpp/tests/linesegment_aabb_checker_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "bazel build linesegment_aabb_checker_test",
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
             "name": "Debug hpolyhedron_test",
             "type": "cppdbg",
             "request": "launch",
@@ -175,6 +196,27 @@
                 }
             ],
             "preLaunchTask": "bazel build cuda_set_builder_utils_test_interactive",
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "Debug cuda_edit_regions_test_interactive",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bazel-bin/csdecomp/src/cuda/tests/cuda_edit_regions_test_interactive",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "bazel build cuda_edit_regions_test_interactive",
             "miDebuggerPath": "/usr/bin/gdb"
         },
         {

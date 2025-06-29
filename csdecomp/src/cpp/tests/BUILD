@@ -97,6 +97,34 @@ cc_test(
     ],
 )
 
+cc_test(
+    name = "linesegment_aabb_checker_test",
+    srcs = ["linesegment_aabb_checker_test.cpp"],
+    copts = [
+        "-Icsdecomp/src/cpp",
+    ],
+    data = [],
+    linkopts = [],
+    deps = [
+        "//csdecomp/src/cpp:linesegment_aabb_checker",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "distance_aabb_linesegment_test",
+    srcs = ["distance_aabb_linesegment_test.cpp"],
+    copts = [
+        "-Icsdecomp/src/cpp",
+    ],
+    data = [],
+    linkopts = [],
+    deps = [
+        "//csdecomp/src/cpp:distance_aabb_linesegment",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
 cc_test_with_system_python(
     name = "build_roadmap_test_interactive",
     srcs = ["build_roadmap_test.cpp"],

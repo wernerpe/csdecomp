@@ -44,7 +44,8 @@ class HPolyhedron {
    * @param A The matrix of face normals.
    * @param b The right-hand side vector.
    */
-  HPolyhedron(const Eigen::MatrixXf& A, Eigen::VectorXf& b);
+  HPolyhedron(const Eigen::Ref<const Eigen::MatrixXf>& A,
+              const Eigen::Ref<const Eigen::VectorXf>& b);
 
   /**
    * @brief Gets the matrix of face normals.
@@ -77,7 +78,8 @@ class HPolyhedron {
    * @param previous_sample The point to check.
    * @return True if the point is inside the polyhedron, false otherwise.
    */
-  const bool PointInSet(const Eigen::VectorXf& previous_sample) const;
+  const bool PointInSet(const Eigen::VectorXf& previous_sample,
+                        float tol = 1e-9) const;
 
   /**
    * @brief Generates a uniform sample from the polyhedron using hit-and-run

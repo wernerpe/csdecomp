@@ -7,12 +7,14 @@ authors = ["Peter Werner <wernerpe@mit.edu>"]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
-drake = "^1.38.0"
-numpy = "^1.25.2"
+drake = "^1.41.0"
+numpy = "^2.0.0"
 ipywidgets = "8.1.2"
 jupyter = "^1.1.1"
-cspace_utils = {git = "git@github.com:wernerpe/cspace_utils.git", branch = "main"}
+cspace_utils = {git = "git@github.com:wernerpe/cspace_utils.git", rev = "a75593b84ade4a360876f2c3dc5b731e55f643d6"}
 pycsdecomp = {path = "../bazel-bin/csdecomp/src/pybind/pycsdecomp/pycsdecomp-0.1-cp310-none-manylinux2014_x86_64.whl"}
 scipy = ">=1.14.1"
 pymcubes = "^0.1.6"
 networkx = ">= 3.4.2"
+scsplanning = {git = "git@github.com:TobiaMarcucci/scsplanning.git", rev = "8e641fba58c8248a4204fad8163afa84993f2355"}
+pybezier = {git = "git@github.com:TobiaMarcucci/pybezier.git", rev = "fad0ae3fa4a05fb2d08c9682fa5596ec1b356515"}

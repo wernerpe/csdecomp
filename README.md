@@ -49,12 +49,11 @@ There is an experimental documentation that can be built with doxygen `cd csdeco
 
 1. Install poetry `pip install poetry` 
 
-2. Set automatic naming `poetry config virtualenvs.create true; poetry config virtualenvs.in-project true`
+2. `cd examples && poetry install`
 
-3. `cd examples && poetry install`
-
-4. Run the exapmles! 
-E.g. `poetry shell && python minimal_test.py`
+3. Run the exapmles! 
+E.g. activate the environment via the command given with `poetry env activate` then run
+     `python minimal_test.py`
 
     For the notebooks make sure to select the kernel corresponding to the venv created by poetry. If you are using vscode, you may need to open the examples folder speparately, e.g. `cd examples && code .`, for it to detect and list the kernel automatically.
 

@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.urdf": "xml",
         "regex": "cpp",
         "cctype": "cpp",
         "clocale": "cpp",
@@ -88,7 +89,9 @@
         "condition_variable": "cpp",
         "mutex": "cpp",
         "target": "cpp",
-        "typeindex": "cpp"
+        "typeindex": "cpp",
+        "*.inc": "cpp",
+        "dense": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

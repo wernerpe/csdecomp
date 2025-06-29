@@ -4,7 +4,8 @@
 #include <vector>
 
 namespace csdecomp {
-#define MAX_NUM_STATIC_COLLISION_GEOMETRIES 100
+#define MAX_NUM_STATIC_COLLISION_GEOMETRIES 2000
+#define MAX_NUM_STATIC_COLLISION_PAIRS 10000
 
 typedef int32_t GeometryIndex;
 typedef Eigen::Matrix<GeometryIndex, 2, Eigen::Dynamic, Eigen::ColMajor>

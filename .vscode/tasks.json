@@ -137,6 +137,36 @@
             ]
         },
         {
+            "label": "bazel build cuda_edit_regions_test_interactive",
+            "type": "shell",
+            "command": "bazel",
+            "args": [
+                "build",
+                "//csdecomp/src/cuda/tests:cuda_edit_regions_test_interactive",
+                "-c",
+                "dbg"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "bazel build linesegment_aabb_checker_test",
+            "type": "shell",
+            "command": "bazel",
+            "args": [
+                "build",
+                "//csdecomp/src/cpp/tests:linesegment_aabb_checker_test",
+                "-c",
+                "dbg"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
             "label": "bazel build polytope_builder_test_interactive",
             "type": "shell",
             "command": "bazel",

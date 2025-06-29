@@ -89,7 +89,8 @@ HPolyhedron::HPolyhedron(const MinimalHPolyhedron& hpoly) {
   _b = bmin;
 }
 
-HPolyhedron::HPolyhedron(const Eigen::MatrixXf& A, Eigen::VectorXf& b)
+HPolyhedron::HPolyhedron(const Eigen::Ref<const Eigen::MatrixXf>& A,
+                         const Eigen::Ref<const Eigen::VectorXf>& b)
     : _A(A), _b(b), _ambient_dimension(A.cols()) {
   if (A.rows() != b.size()) {
     throw std::invalid_argument("A and b dimensions do not match");
@@ -261,13 +262,14 @@ const Eigen::VectorXf HPolyhedron::GetFeasiblePoint() const {
 
 const int HPolyhedron::ambient_dimension() const { return _ambient_dimension; }
 
-const bool HPolyhedron::PointInSet(const Eigen::VectorXf& point) const {
+const bool HPolyhedron::PointInSet(const Eigen::VectorXf& point,
+                                   float tol) const {
   if (point.size() != _ambient_dimension) {
     throw std::invalid_argument(
         "Point dimension does not match polyhedron dimension");
   }
 
   // A point is in the set if it satisfies all inequalities: A * x <= b
-  return ((_A * point).array() <= _b.array()).all();
+  return ((_A * point).array() <= _b.array() + tol).all();
 }
 }  // namespace csdecomp
