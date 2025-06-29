@@ -21,4 +21,4 @@ Demonstrates how to construct a plant if you are given a drake plant. Currently,
 Gives an example of how to use SCSPlanning to optimizie smooth, minimum-time trajectories through a sequence of regions generated with EI-ZO, as described in the paper. Make sure to run `build_DRM.py` first, since the DRM is required to find an initial path.
 
 ### more examples
-Check out the CPP unit tests for more examples, they should hopefully be clear. Otherwise feel free to reach out wernerpe __ at __ mit __ dot __ edu
+Check out the CPP unit tests for more examples, they should hopefully be clear. Otherwise feel free to reach out! wernerpe__at__mit__dot__edu.
