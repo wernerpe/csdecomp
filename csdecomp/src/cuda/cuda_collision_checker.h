@@ -1,5 +1,6 @@
 #pragma once
 #include <Eigen/Dense>
+#include <Eigen/Sparse>
 #include <vector>
 
 #include "collision_geometry.h"
@@ -94,10 +95,10 @@ std::vector<uint8_t> checkCollisionFreeCuda(
 
 /**
  * @brief High-level C++ wrapper for CUDA-based collision checking with voxel
- * maps, excluding self-collisions.
+ * maps, including self-collisions.
  *
  * Handles memory allocation and performs collision checking against voxel maps
- * and the static environment, but excludes self-collision checks.
+ * and the static environment including self-collision checks.
  *
  * @param configurations Pointer to the matrix of configurations to check.
  * @param voxels Pointer to the Voxels object representing the voxel map.
@@ -109,6 +110,30 @@ std::vector<uint8_t> checkCollisionFreeCuda(
  * configuration.
  */
 std::vector<uint8_t> checkCollisionFreeVoxelsCuda(
+    const Eigen::MatrixXf *configurations, const Voxels *voxels,
+    const float voxel_radius, const MinimalPlant *plant,
+    const std::vector<GeometryIndex> &robot_geometries);
+
+/**
+ * @brief High-level C++ wrapper for CUDA-based collision checking with voxel
+ * maps. It returns the result for each collision pair. Includes
+ * self-collisions.
+ *
+ * Handles memory allocation and performs collision checking against voxel maps
+ * and the static environment.
+ *
+ * @param configurations Pointer to the matrix of configurations to check.
+ * @param voxels Pointer to the Voxels object representing the voxel map.
+ * @param voxel_radius Radius of each voxel.
+ * @param plant MinimalPlant object with kinematics and geometry information.
+ * @param robot_geometry_ids Vector of geometry indices to check against the
+ * voxel map.
+ * @return std::pair<Eigen::SparseMatrix<bool>, Eigen::SparseMatrix<bool>> Pair
+ * of matrices indicating collision-free status for the self-collision pairs and
+ * the collision pairs with the voxelmap for each configuration.
+ */
+std::pair<Eigen::SparseMatrix<bool>, Eigen::SparseMatrix<bool>>
+checkCollisionFreeVoxelsCudaUnPooled(
     const Eigen::MatrixXf *configurations, const Voxels *voxels,
     const float voxel_radius, const MinimalPlant *plant,
     const std::vector<GeometryIndex> &robot_geometries);
