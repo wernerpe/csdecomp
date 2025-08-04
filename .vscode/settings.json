@@ -91,7 +91,8 @@
         "target": "cpp",
         "typeindex": "cpp",
         "*.inc": "cpp",
-        "dense": "cpp"
+        "dense": "cpp",
+        "shared_mutex": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

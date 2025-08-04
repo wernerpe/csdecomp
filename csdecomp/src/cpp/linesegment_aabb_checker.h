@@ -1,11 +1,22 @@
 #pragma once
 
+#include <omp.h>
+
 #include <Eigen/Dense>
 #include <cmath>
 #include <limits>
 #include <vector>
 
 namespace csdecomp {
+
+uint8_t PointInAABBs(const Eigen::VectorXd& point,
+                     const Eigen::MatrixXd& boxes_min,
+                     const Eigen::MatrixXd& boxes_max);
+
+std::vector<uint8_t> PointsInAABBs(const Eigen::MatrixXd& points,
+                                   const Eigen::MatrixXd& boxes_min,
+                                   const Eigen::MatrixXd& boxes_max,
+                                   bool parallelize = true);
 
 /**
  * Check if a line segment intersects with an axis-aligned bounding box (AABB)

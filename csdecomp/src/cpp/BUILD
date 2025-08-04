@@ -21,7 +21,14 @@ cc_library(
     name = "linesegment_aabb_checker",
     srcs = ["linesegment_aabb_checker.cpp"],
     hdrs = ["linesegment_aabb_checker.h"],
+    copts = [
+        "-fopenmp",
+        "-O2",
+    ],
     includes = ["."],
+    linkopts = [
+        "-fopenmp",
+    ],
     visibility = ["//visibility:public"],
     deps = [
         "@eigen",

@@ -132,11 +132,6 @@ std::vector<uint8_t> checkCollisionFreeVoxelsCuda(
  * of matrices indicating collision-free status for the self-collision pairs and
  * the collision pairs with the voxelmap for each configuration.
  */
-std::pair<Eigen::SparseMatrix<bool>, Eigen::SparseMatrix<bool>>
-checkCollisionFreeVoxelsCudaUnPooled(
-    const Eigen::MatrixXf *configurations, const Voxels *voxels,
-    const float voxel_radius, const MinimalPlant *plant,
-    const std::vector<GeometryIndex> &robot_geometries);
 
 std::vector<uint8_t> checkCollisionFreeVoxelsWithoutSelfCollisionCuda(
     const Eigen::MatrixXf *configurations, const Voxels *voxels,

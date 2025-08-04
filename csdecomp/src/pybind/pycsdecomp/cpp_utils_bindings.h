@@ -93,4 +93,35 @@ void add_cpp_utils_bindings(py::module& m) {
       "        'optimal_point': The closest point on the line segment to the "
       "AABB.\n"
       "        'distance': The distance between these two points.\n\n");
+
+  // Add the PointsInAABBs function
+  m.def(
+      "PointsInAABBs", &PointsInAABBs, py::arg("points"), py::arg("boxes_min"),
+      py::arg("boxes_max"), py::arg("parallelize") = true,
+      "Check if multiple points are inside any of the axis-aligned bounding "
+      "boxes "
+      "(AABBs).\n\n"
+      "Args:\n"
+      "    points (numpy.ndarray): Points as a matrix of shape (dim, "
+      "N_points).\n"
+      "    boxes_min (numpy.ndarray): Minimum corners of the AABBs as a matrix "
+      "of shape (dim, N_boxes).\n"
+      "    boxes_max (numpy.ndarray): Maximum corners of the AABBs as a matrix "
+      "of shape (dim, N_boxes).\n"
+      "    parallelize (bool, optional): Whether to use OpenMP "
+      "parallelization. "
+      "Default is True.\n\n"
+      "Returns:\n"
+      "    list: A list of integers (0 or 1), where 1 indicates the "
+      "corresponding "
+      "point\n"
+      "          is inside at least one AABB, 0 otherwise.\n\n"
+      "Note:\n"
+      "    Each point is checked against all AABBs with early exit on first "
+      "collision.\n"
+      "    When parallelize=True, computation is distributed across available "
+      "threads.\n"
+      "    The dimension of points must match the number of rows in "
+      "boxes_min and boxes_max.\n"
+      "    boxes_min and boxes_max must have the same shape.");
 }

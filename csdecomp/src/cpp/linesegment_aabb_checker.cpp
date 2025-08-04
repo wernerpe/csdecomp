@@ -1,5 +1,7 @@
 #include "linesegment_aabb_checker.h"
 
+#include <iostream>
+
 namespace csdecomp {
 // Define A2 and A3 as static constants
 static const Eigen::Matrix<double, 4, 2> A2 =
@@ -9,6 +11,60 @@ static const Eigen::Matrix<double, 6, 3> A3 =
     (Eigen::Matrix<double, 6, 3>() << 1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 0, 0,
      -1, 0, 0, 0, -1)
         .finished();
+
+uint8_t PointInAABBs(const Eigen::VectorXd& point,
+                     const Eigen::MatrixXd& boxes_min,
+                     const Eigen::MatrixXd& boxes_max) {
+  const int point_dim = point.size();
+  const int num_boxes = boxes_min.cols();
+
+  // Check each box (each column is one box)
+  for (int box_idx = 0; box_idx < num_boxes; ++box_idx) {
+    bool inside_box = true;
+
+    // Check each dimension of current box
+    for (int dim = 0; dim < point_dim; ++dim) {
+      if (point[dim] < boxes_min(dim, box_idx) ||
+          point[dim] > boxes_max(dim, box_idx)) {
+        inside_box = false;
+        break;  // Early exit for this box
+      }
+    }
+
+    if (inside_box) {
+      return 1;  // Early exit - collision found!
+    }
+  }
+
+  return 0;  // No collision found
+}
+
+std::vector<uint8_t> PointsInAABBs(const Eigen::MatrixXd& points,
+                                   const Eigen::MatrixXd& boxes_min,
+                                   const Eigen::MatrixXd& boxes_max,
+                                   bool parallelize) {
+  const int num_points = points.cols();  // Each column is a point
+  std::vector<uint8_t> results(num_points);
+
+  if (parallelize) {
+#pragma omp parallel for schedule(dynamic)
+    for (int i = 0; i < num_points; ++i) {
+      int thread_id = omp_get_thread_num();
+      std::cout << "Thread " << thread_id << " processing point " << i
+                << std::endl;
+      Eigen::VectorXd point = points.col(i);
+      results[i] = PointInAABBs(point, boxes_min, boxes_max);
+    }
+  } else {
+    // Serial version
+    for (int i = 0; i < num_points; ++i) {
+      Eigen::VectorXd point = points.col(i);
+      results[i] = PointInAABBs(point, boxes_min, boxes_max);
+    }
+  }
+
+  return results;
+}
 
 bool LinesegmentAABBIntersecting(const Eigen::VectorXd& p1,
                                  const Eigen::VectorXd& p2,

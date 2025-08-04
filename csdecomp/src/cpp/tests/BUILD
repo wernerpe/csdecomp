@@ -147,3 +147,15 @@ cc_test_with_system_python(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_binary(
+    name = "omp_test",
+    srcs = ["omp_test.cpp"],
+    copts = [
+        "-fopenmp",
+        "-O2",
+    ],
+    linkopts = [
+        "-fopenmp",
+    ],
+)
