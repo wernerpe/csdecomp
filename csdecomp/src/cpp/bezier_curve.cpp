@@ -116,16 +116,36 @@ BezierCurve BezierCurve::operator*(const BezierCurve& other) const {
       double coeff = binomial_coefficient(degree_, j) *
                      binomial_coefficient(other.degree_, i - j);
 
-      // Handle dimension compatibility
-      Eigen::VectorXd p1 = Eigen::VectorXd::Zero(new_dimension);
-      Eigen::VectorXd p2 = Eigen::VectorXd::Zero(new_dimension);
+      // Get the actual control points (without padding)
+      Eigen::VectorXd p1 = points_.row(j);
+      Eigen::VectorXd p2 = other.points_.row(i - j);
 
-      p1.head(dimension_) = points_.row(j);
-      p2.head(other.dimension_) = other.points_.row(i - j);
+      // Handle different dimension cases properly
+      if (dimension_ == other.dimension_) {
+        // Same dimensions: element-wise multiplication
+        Eigen::VectorXd product = p1.cwiseProduct(p2);
+        new_points.row(i).head(dimension_) += coeff * product.transpose();
+      } else if (other.dimension_ == 1) {
+        // Other is scalar: multiply each component of p1 by the scalar p2[0]
+        Eigen::VectorXd product = p1 * p2(0);
+        new_points.row(i).head(dimension_) += coeff * product.transpose();
+        // If new_dimension > dimension_, the remaining components stay zero
+      } else if (dimension_ == 1) {
+        // This curve is scalar: multiply each component of p2 by scalar p1[0]
+        Eigen::VectorXd product = p2 * p1(0);
+        new_points.row(i).head(other.dimension_) += coeff * product.transpose();
+        // If new_dimension > other.dimension_, the remaining components stay
+        // zero
+      } else {
+        // Different non-scalar dimensions: zero-pad and element-wise multiply
+        Eigen::VectorXd padded_p1 = Eigen::VectorXd::Zero(new_dimension);
+        Eigen::VectorXd padded_p2 = Eigen::VectorXd::Zero(new_dimension);
 
-      // Element-wise multiplication for different dimensions
-      for (int d = 0; d < new_dimension; ++d) {
-        new_points(i, d) += coeff * p1(d) * p2(d);
+        padded_p1.head(dimension_) = p1;
+        padded_p2.head(other.dimension_) = p2;
+
+        Eigen::VectorXd product = padded_p1.cwiseProduct(padded_p2);
+        new_points.row(i) += coeff * product.transpose();
       }
     }
 
@@ -153,12 +173,17 @@ BezierCurve BezierCurve::elevate_degree(int new_degree) const {
     return *this;
   }
 
-  // Create a curve of ones with the desired degree elevation
-  Eigen::MatrixXd ones_points =
-      Eigen::MatrixXd::Ones(new_degree - degree_ + 1, 1);
-  BezierCurve ones_curve(ones_points, initial_time_, final_time_);
+  // The issue might be that we need to elevate step by step
+  BezierCurve result = *this;
 
-  return *this * ones_curve;
+  for (int target = degree_ + 1; target <= new_degree; ++target) {
+    // Create a curve of ones with degree 1 (linear curve of constant 1)
+    Eigen::MatrixXd ones_points = Eigen::MatrixXd::Ones(2, 1);
+    BezierCurve ones_curve(ones_points, initial_time_, final_time_);
+    result = result * ones_curve;
+  }
+
+  return result;
 }
 
 BezierCurve BezierCurve::operator+(const BezierCurve& other) const {
