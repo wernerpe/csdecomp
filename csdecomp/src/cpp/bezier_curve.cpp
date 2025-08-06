@@ -1,6 +1,7 @@
 #include "bezier_curve.h"
 
 #include <algorithm>
+#include <exception>
 #include <numeric>
 
 namespace csdecomp {
@@ -241,6 +242,7 @@ BezierCurve operator-(double scalar, const BezierCurve& curve) {
 BezierCurve BezierCurve::operator-() const { return *this * (-1.0); }
 
 BezierCurve BezierCurve::derivative() const {
+  throw std::runtime_error("Implementation is broken needs fixing and testing");
   if (degree_ == 0) {
     // Derivative of constant curve is zero
     Eigen::MatrixXd zero_points = Eigen::MatrixXd::Zero(1, dimension_);
