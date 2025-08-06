@@ -323,7 +323,6 @@ double BezierCurve::l2_squared() const {
 
   return duration_ * result / (2.0 * degree_ + 1.0);
 }
-
 // CompositeBezierCurve implementation
 
 CompositeBezierCurve::CompositeBezierCurve(
@@ -411,6 +410,72 @@ std::vector<int> CompositeBezierCurve::curve_segments(
 
 const BezierCurve& CompositeBezierCurve::operator[](int index) const {
   return curves_[index];
+}
+
+uint8_t BezierCurveHPolyhedronCollisionFree(const BezierCurve& curve,
+                                            const Eigen::MatrixXd& A,
+                                            const Eigen::VectorXd& b,
+                                            double tol) {
+  // Get control points as matrix (rows = control points, cols = dimensions)
+  const Eigen::MatrixXd& pts = curve.points();
+
+  // Compute A*pts^T - b for collision detection
+  // pts.transpose() gives us (dimension x num_points)
+  // A * pts.transpose() gives us (num_constraints x num_points)
+  Eigen::MatrixXd axmb = A * pts.transpose() - b.replicate(1, pts.rows());
+
+  // Check if points are outside region (any constraint violated means outside)
+  // A point is outside if max(A*x - b) >= 0
+  Eigen::VectorXd max_violations = axmb.colwise().maxCoeff();
+  Eigen::Array<bool, Eigen::Dynamic, 1> pts_outside =
+      (max_violations.array() >= 0.0);
+
+  // Check if start and end points are collision-free
+  bool start_and_end_col_free =
+      pts_outside(0) && pts_outside(pts_outside.size() - 1);
+
+  // Check if all points are outside at least one hyperplane
+  // This means there exists a hyperplane that separates all control points from
+  // the obstacle
+  Eigen::VectorXd min_violations = axmb.rowwise().minCoeff();
+  bool all_points_outside_hyperplane = (min_violations.array() >= 0.0).any();
+
+  // Compute bounding sphere radius of control points
+  Eigen::VectorXd mean = pts.colwise().mean();
+  Eigen::MatrixXd diff = pts.rowwise() - mean.transpose();
+
+  // Compute norms of each row (control point differences from mean)
+  Eigen::VectorXd norms(diff.rows());
+  for (int i = 0; i < diff.rows(); ++i) {
+    norms(i) = diff.row(i).norm();
+  }
+  double radius = norms.maxCoeff();
+
+  bool min_tol_reached = radius <= tol;
+
+  // Early returns based on collision conditions
+  if (!start_and_end_col_free) {
+    return false;
+  }
+
+  if (all_points_outside_hyperplane) {
+    return true;
+  }
+
+  if (min_tol_reached) {
+    // Uncomment for debugging:
+    // std::cout << "min tol reached" << std::endl;
+    return false;
+  }
+
+  // Recursive subdivision
+  double mid_time = (curve.initial_time() + curve.final_time()) / 2.0;
+  auto [r1, r2] = curve.domain_split(mid_time);
+
+  bool col_free1 = BezierCurveHPolyhedronCollisionFree(r1, A, b, tol);
+  bool col_free2 = BezierCurveHPolyhedronCollisionFree(r2, A, b, tol);
+
+  return col_free1 && col_free2;
 }
 
 }  // namespace csdecomp

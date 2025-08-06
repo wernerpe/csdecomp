@@ -7,6 +7,8 @@
 #include <utility>
 #include <vector>
 
+// #include "hpolyhedron.h"
+
 namespace csdecomp {
 
 /**
@@ -364,5 +366,10 @@ class CompositeBezierCurve {
    */
   const BezierCurve& operator[](int index) const;
 };
+
+uint8_t BezierCurveHPolyhedronCollisionFree(const BezierCurve& c,
+                                            const Eigen::MatrixXd& A,
+                                            const Eigen::VectorXd& b,
+                                            double tol = 1e-2);
 
 }  // namespace csdecomp
