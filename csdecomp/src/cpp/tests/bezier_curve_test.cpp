@@ -7,6 +7,8 @@
 #include <iostream>
 #include <random>
 #include <vector>
+
+#include "hpolyhedron.h"
 using namespace csdecomp;
 using namespace Eigen;
 
@@ -478,6 +480,61 @@ TEST_F(BezierCurveTest, TestBinomialCoefficient) {
   // Test edge cases
   EXPECT_DOUBLE_EQ(binomial_coefficient(5, 6), 0.0);
   EXPECT_DOUBLE_EQ(binomial_coefficient(5, -1), 0.0);
+}
+
+GTEST_TEST(BezierCurveTest2, HPolyCollisionCheck) {
+  // Define constraint matrix A and vector b for H-polyhedron
+  // Represents the constraints: x <= 7, y <= 7, x >= 3, y >= 3
+  // (i.e., a box from (3,3) to (7,7))
+  MatrixXf A(4, 2);
+  A << 1.0, 0.0,  // x <= 7
+      0.0, 1.0,   // y <= 7
+      -1.0, 0.0,  // -x <= -3  => x >= 3
+      0.0, -1.0;  // -y <= -3  => y >= 3
+
+  VectorXf b(4);
+  b << 7.0, 7.0, -3.0, -3.0;
+
+  // Create H-polyhedron
+  HPolyhedron hpoly(A, b);
+
+  // Test case 1: Curve that goes outside the box (y = 7.05 > 7)
+  MatrixXd wps1(6, 2);
+  wps1 << 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+      7.05,                 // This point violates y <= 7
+      1.0, 7.05, 7.0, 8.0;  // This point also violates y <= 7
+
+  BezierCurve r1(wps1, 0.0, 1.0);
+
+  // Test case 2: Curve that stays within bounds (y = 6.9 < 7)
+  MatrixXd wps2(6, 2);
+  wps2 << 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+      6.9,                 // This point satisfies y <= 7
+      1.0, 6.9, 7.0, 8.0;  // This point violates y <= 7
+
+  BezierCurve r2(wps2, 0.0, 1.0);
+  Eigen::MatrixXd A_obs = hpoly.A().cast<double>();
+  Eigen::MatrixXd b_obs = hpoly.b().cast<double>();
+
+  // Test with different tolerances
+  bool result1_fine =
+      BezierCurveHPolyhedronCollisionFree(r1, A_obs, b_obs, 1e-2);
+  bool result1_coarse =
+      BezierCurveHPolyhedronCollisionFree(r1, A_obs, b_obs, 1e-1);
+  bool result2_coarse =
+      BezierCurveHPolyhedronCollisionFree(r2, A_obs, b_obs, 1e-1);
+
+  // Print results (similar to Python output)
+  std::cout << std::boolalpha;  // Print true/false instead of 1/0
+  std::cout << "col_free " << result1_fine << std::endl;
+  std::cout << "col_free " << result1_coarse << std::endl;
+  std::cout << "col_free " << result2_coarse << std::endl;
+
+  // Expected results based on Python output:
+  EXPECT_TRUE(result1_fine);     // Should be true with fine tolerance
+  EXPECT_FALSE(result1_coarse);  // Should be false with coarse tolerance (min
+                                 // tol reached)
+  EXPECT_FALSE(result2_coarse);  // Should be false
 }
 
 int main(int argc, char** argv) {

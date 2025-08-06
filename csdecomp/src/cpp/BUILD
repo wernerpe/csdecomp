@@ -181,7 +181,7 @@ cc_library(
     hdrs = ["bezier_curve.h"],
     visibility = ["//visibility:public"],
     deps = [
-        # ":hpolyhedron",
+        ":hpolyhedron",
         "@eigen",
     ],
 )
