@@ -43,17 +43,38 @@ std::vector<uint8_t> PointsInAABBs(const Eigen::MatrixXd& points,
                                    const Eigen::MatrixXd& boxes_min,
                                    const Eigen::MatrixXd& boxes_max,
                                    bool parallelize) {
+  const int point_dim = points.rows();
+  const int box_dim = boxes_min.rows();
+  assert(point_dim == box_dim &&
+         "box dimension does not match point dimension");
+  assert(boxes_max.rows() == box_dim &&
+         "upper and lower bounds of boxes have different dimensions");
+  assert(boxes_max.cols() == boxes_min.cols() &&
+         "upper and lower bounds of boxes list different number of boxes");
+
   const int num_points = points.cols();  // Each column is a point
   std::vector<uint8_t> results(num_points);
 
   if (parallelize) {
-#pragma omp parallel for schedule(dynamic)
+    std::cout << "Available threads " << omp_get_max_threads() << std::endl;
+#pragma omp parallel for schedule(static, 100)
     for (int i = 0; i < num_points; ++i) {
-      int thread_id = omp_get_thread_num();
-      std::cout << "Thread " << thread_id << " processing point " << i
-                << std::endl;
-      Eigen::VectorXd point = points.col(i);
-      results[i] = PointInAABBs(point, boxes_min, boxes_max);
+      const int point_dim = points.rows();
+      bool found_collision = false;
+
+      for (int box_idx = 0; box_idx < boxes_min.cols() && !found_collision;
+           ++box_idx) {
+        bool inside_box = true;
+        for (int dim = 0; dim < point_dim; ++dim) {
+          if (points(dim, i) < boxes_min(dim, box_idx) ||
+              points(dim, i) > boxes_max(dim, box_idx)) {
+            inside_box = false;
+            break;
+          }
+        }
+        if (inside_box) found_collision = true;
+      }
+      results[i] = found_collision ? 1 : 0;
     }
   } else {
     // Serial version

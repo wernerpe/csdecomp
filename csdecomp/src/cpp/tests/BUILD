@@ -125,6 +125,20 @@ cc_test(
     ],
 )
 
+cc_test(
+    name = "bezier_curve_test",
+    srcs = ["bezier_curve_test.cpp"],
+    copts = [
+        "-Icsdecomp/src/cpp",
+    ],
+    data = [],
+    linkopts = [],
+    deps = [
+        "//csdecomp/src/cpp:bezier_curve",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
 cc_test_with_system_python(
     name = "build_roadmap_test_interactive",
     srcs = ["build_roadmap_test.cpp"],

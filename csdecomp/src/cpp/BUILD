@@ -154,7 +154,7 @@ cuda_library(
     ],
 )
 
-#defines roadmap.
+#defines drm_planner.
 cc_library(
     name = "drm_planner",
     srcs = ["drm_planner.cpp"],
@@ -173,4 +173,14 @@ cc_library(
     ],
     # copts = ["-fopenmp"],
     # linkopts = ["-fopenmp"]
+)
+
+cc_library(
+    name = "bezier_curve",
+    srcs = ["bezier_curve.cpp"],
+    hdrs = ["bezier_curve.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@eigen",
+    ],
 )

@@ -97,7 +97,7 @@ void add_cpp_utils_bindings(py::module& m) {
   // Add the PointsInAABBs function
   m.def(
       "PointsInAABBs", &PointsInAABBs, py::arg("points"), py::arg("boxes_min"),
-      py::arg("boxes_max"), py::arg("parallelize") = true,
+      py::arg("boxes_max"), py::arg("parallelize") = false,
       "Check if multiple points are inside any of the axis-aligned bounding "
       "boxes "
       "(AABBs).\n\n"
