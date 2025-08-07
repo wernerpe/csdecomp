@@ -179,6 +179,13 @@ cc_library(
     name = "bezier_curve",
     srcs = ["bezier_curve.cpp"],
     hdrs = ["bezier_curve.h"],
+    copts = [
+        "-fopenmp",
+        "-O2",
+    ],
+    linkopts = [
+        "-fopenmp",
+    ],
     visibility = ["//visibility:public"],
     deps = [
         ":hpolyhedron",

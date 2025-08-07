@@ -1,8 +1,14 @@
+/** This file has been created using Claude 4 by translating
+ * https://github.com/TobiaMarcucci/pybezier from python.
+ * commit/0ff3893eae89a0dedff984e1aaf35f71ffb0bbf1*/
 #include "bezier_curve.h"
+
+#include <omp.h>
 
 #include <algorithm>
 #include <exception>
 #include <numeric>
+#include <unordered_set>
 
 namespace csdecomp {
 
@@ -502,6 +508,74 @@ uint8_t BezierCurveHPolyhedronCollisionFree(const BezierCurve& curve,
   bool col_free2 = BezierCurveHPolyhedronCollisionFree(r2, A, b, tol);
 
   return col_free1 && col_free2;
+}
+
+std::vector<std::vector<int>> IntersectCompositeBezierCurveWithHPolyhedra(
+    const CompositeBezierCurve& c, const std::vector<Eigen::MatrixXd>& As,
+    const std::vector<Eigen::VectorXd>& bs,
+    const std::vector<std::vector<int>>& hpoly_to_ignore, double tol,
+    bool parallelize) {
+  // Validate input dimensions
+  if (As.size() != bs.size()) {
+    throw std::invalid_argument("As and bs must have the same size");
+  }
+
+  const size_t num_segments = c.num_segments();
+  const size_t num_obstacles = As.size();
+
+  if (hpoly_to_ignore.size() != num_segments) {
+    throw std::invalid_argument(
+        "hpoly_to_ignore size must equal number of segments");
+  }
+
+  // Initialize result vector
+  std::vector<std::vector<int>> intersections(num_segments);
+
+  if (parallelize) {
+#pragma omp parallel for schedule(dynamic)
+    for (size_t seg_idx = 0; seg_idx < num_segments; ++seg_idx) {
+      const BezierCurve& segment = c[seg_idx];
+
+      // Convert ignore list to unordered_set for O(1) lookup
+      std::unordered_set<int> ignore_set(hpoly_to_ignore[seg_idx].begin(),
+                                         hpoly_to_ignore[seg_idx].end());
+
+      for (size_t obs_idx = 0; obs_idx < num_obstacles; ++obs_idx) {
+        // Skip this obstacle if it's in the ignore list for this segment
+        if (ignore_set.find(static_cast<int>(obs_idx)) != ignore_set.end()) {
+          continue;
+        }
+
+        if (!BezierCurveHPolyhedronCollisionFree(segment, As[obs_idx],
+                                                 bs[obs_idx], tol)) {
+          intersections[seg_idx].push_back(static_cast<int>(obs_idx));
+        }
+      }
+    }
+  } else {
+    // Sequential version
+    for (size_t seg_idx = 0; seg_idx < num_segments; ++seg_idx) {
+      const BezierCurve& segment = c[seg_idx];
+
+      // Convert ignore list to unordered_set for O(1) lookup
+      std::unordered_set<int> ignore_set(hpoly_to_ignore[seg_idx].begin(),
+                                         hpoly_to_ignore[seg_idx].end());
+
+      for (size_t obs_idx = 0; obs_idx < num_obstacles; ++obs_idx) {
+        // Skip this obstacle if it's in the ignore list for this segment
+        if (ignore_set.find(static_cast<int>(obs_idx)) != ignore_set.end()) {
+          continue;
+        }
+
+        if (!BezierCurveHPolyhedronCollisionFree(segment, As[obs_idx],
+                                                 bs[obs_idx], tol)) {
+          intersections[seg_idx].push_back(static_cast<int>(obs_idx));
+        }
+      }
+    }
+  }
+
+  return intersections;
 }
 
 }  // namespace csdecomp

@@ -1,3 +1,7 @@
+/** This file has been created using Claude 4 by translating
+ * https://github.com/TobiaMarcucci/pybezier from python.
+ * commit/0ff3893eae89a0dedff984e1aaf35f71ffb0bbf1*/
+
 #pragma once
 
 #include <Eigen/Dense>
@@ -331,7 +335,7 @@ class CompositeBezierCurve {
   double duration() const { return duration_; }
   size_t num_segments() const { return curves_.size(); }
   const std::vector<double>& knot_times() const { return knot_times_; }
-
+  const std::vector<BezierCurve>& curves() const { return curves_; }
   /**
    * @brief Find which curve segment contains the given time
    * @param time Time parameter
@@ -367,9 +371,94 @@ class CompositeBezierCurve {
   const BezierCurve& operator[](int index) const;
 };
 
+/**
+ * @brief Check if a Bezier curve is collision-free with respect to an
+ * H-polyhedron obstacle
+ *
+ * Determines whether a Bezier curve avoids collision with a convex polytope
+ * obstacle defined by linear inequalities Ax <= b. Uses recursive subdivision
+ * with control point analysis for efficient collision detection. This algorithm
+ * never returns a false positive: It never claims a curve is collision-free
+ * when it is in collision.
+ *
+ * The algorithm works by:
+ * 1. Checking if start/end points are outside the obstacle (necessary
+ * condition)
+ * 2. Testing if all control points lie outside at least one hyperplane
+ * (sufficient condition)
+ * 3. If inconclusive, recursively subdividing the curve until tolerance is
+ * reached
+ *
+ * @param curve The Bezier curve to check for collision
+ * @param A Constraint matrix defining the H-polyhedron (num_constraints x
+ * dimension)
+ * @param b Constraint vector defining the H-polyhedron (num_constraints x 1)
+ * @param tol Tolerance for recursive subdivision termination (default: 1e-2)
+ *             When the bounding sphere radius of control points <= tol,
+ * subdivision stops
+ *
+ * @return uint8_t Collision status:
+ *         - 1 (true): Curve is collision-free (does not intersect the obstacle
+ * region Ax <= b)
+ *         - 0 (false): Curve may collide or collision cannot be determined
+ * within tolerance
+ *
+ * @note The obstacle region is defined as the set {x : Ax <= b}. Points outside
+ * this region satisfy at least one constraint Ax > b.
+ * @note This is a conservative algorithm - it may return false negatives
+ * (reporting potential collision when the curve is actually collision-free) but
+ * never returns false positives.
+ * @note Computational complexity depends on curve complexity and required
+ * precision (tol parameter).
+ *
+ * @pre A.cols() must equal curve.dimension()
+ * @pre A.rows() must equal b.size()
+ * @pre tol must be positive
+ */
 uint8_t BezierCurveHPolyhedronCollisionFree(const BezierCurve& c,
                                             const Eigen::MatrixXd& A,
                                             const Eigen::VectorXd& b,
                                             double tol = 1e-2);
+
+/**
+ * @brief Find intersections between composite Bezier curve segments and
+ * H-polyhedron obstacles
+ *
+ * For each segment of the composite Bezier curve, determines which H-polyhedron
+ * obstacles it potentially intersects with. Uses the
+ * BezierCurveHPolyhedronCollisionFree function to check collision status -
+ * segments that are NOT collision-free are considered to intersect.
+ *
+ * @param c The composite Bezier curve to analyze
+ * @param As Vector of constraint matrices, one for each H-polyhedron (each A_i
+ * has shape num_constraints_i x dimension)
+ * @param bs Vector of constraint vectors, one for each H-polyhedron (each b_i
+ * has shape num_constraints_i x 1)
+ * @param hpoly_to_ignore Vector containing one vector per segment that
+ * constains obstacle indices. If an index is present the corresponding obstacle
+ * is not checked for collision.
+ * @param tol Tolerance for collision detection algorithm (default: 1e-2)
+ * @param parallelize Whether to use parallel processing over segments (default:
+ * true)
+ *
+ * @return std::vector<std::vector<int>> A vector where result[i] contains the
+ * indices of all H-polyhedrons that segment i intersects with. Empty vector for
+ * segment i means segment i is collision-free with respect to all obstacles.
+ *
+ * @pre As.size() must equal bs.size()
+ * @pre For each i: As[i].cols() must equal c.dimension()
+ * @pre For each i: As[i].rows() must equal bs[i].size()
+ * @pre tol must be positive
+ *
+ * @note An intersection is detected when BezierCurveHPolyhedronCollisionFree
+ * returns false, meaning the segment is not proven to be collision-free.
+ * @note Parallelizes over curve segments (recommended when num_obstacles >>
+ * num_segments).
+ */
+std::vector<std::vector<int>> IntersectCompositeBezierCurveWithHPolyhedra(
+    const CompositeBezierCurve& c, const std::vector<Eigen::MatrixXd>& As,
+    const std::vector<Eigen::VectorXd>& bs,
+    const std::vector<std::vector<int>>& hpoly_to_ignore, double tol = 1e-2,
+    bool parallelize = true);
 
 }  // namespace csdecomp

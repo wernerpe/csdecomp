@@ -1,3 +1,6 @@
+/** This file has been created using Claude 4 by translating
+ * https://github.com/TobiaMarcucci/pybezier from python.
+ * commit/0ff3893eae89a0dedff984e1aaf35f71ffb0bbf1*/
 #include "bezier_curve.h"
 
 #include <gtest/gtest.h>
@@ -535,6 +538,156 @@ GTEST_TEST(BezierCurveTest2, HPolyCollisionCheck) {
   EXPECT_FALSE(result1_coarse);  // Should be false with coarse tolerance (min
                                  // tol reached)
   EXPECT_FALSE(result2_coarse);  // Should be false
+}
+
+GTEST_TEST(BezierCurveTest2, CompositeBezierIntersectionCheck) {
+  // Define constraint matrix A and vector b for H-polyhedron
+  // Represents the constraints: x <= 7, y <= 7, x >= 3, y >= 3
+  // (i.e., a box from (3,3) to (7,7))
+  MatrixXf A(4, 2);
+  A << 1.0, 0.0,  // x <= 7
+      0.0, 1.0,   // y <= 7
+      -1.0, 0.0,  // -x <= -3  => x >= 3
+      0.0, -1.0;  // -y <= -3  => y >= 3
+
+  VectorXf b(4);
+  b << 7.0, 7.0, -3.0, -3.0;
+
+  // Create H-polyhedron
+  HPolyhedron hpoly(A, b);
+
+  // Convert to double precision for the intersection function
+  Eigen::MatrixXd A_obs = hpoly.A().cast<double>();
+  Eigen::VectorXd b_obs = hpoly.b().cast<double>();
+
+  // Use the same curves from the original test
+
+  // Test curve 1: Curve that goes outside the box (y = 7.05 > 7)
+  MatrixXd wps1(6, 2);
+  wps1 << 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+      7.05,                 // This point violates y <= 7
+      1.0, 7.05, 7.0, 8.0;  // This point also violates y <= 7
+
+  BezierCurve r1(wps1, 0.0, 1.0);
+
+  // Test curve 2: Curve that stays within bounds (y = 6.9 < 7)
+  MatrixXd wps2(6, 2);
+  wps2 << 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+      6.9,                 // This point satisfies y <= 7
+      1.0, 6.9, 7.0, 8.0;  // This point violates y <= 7
+
+  BezierCurve r2(wps2, 0.0, 1.0);
+
+  // Split each curve into two segments
+  auto [r1_left, r1_right] = r1.domain_split(0.5);
+  auto [r2_left, r2_right] = r2.domain_split(0.5);
+
+  // Create composite curves from the split segments
+  std::vector<BezierCurve> segments1 = {r1_left, r1_right};
+  std::vector<BezierCurve> segments2 = {r2_left, r2_right};
+
+  CompositeBezierCurve composite_curve1(segments1);
+  CompositeBezierCurve composite_curve2(segments2);
+
+  // Create obstacle vector (single obstacle)
+  std::vector<Eigen::MatrixXd> As = {A_obs};
+  std::vector<Eigen::VectorXd> bs = {b_obs};
+
+  // Create empty mask (no obstacles to ignore)
+  std::vector<std::vector<int>> empty_mask1(2);  // 2 segments, no ignores
+  std::vector<std::vector<int>> empty_mask2(2);  // 2 segments, no ignores
+
+  // Test with same tolerances as original
+  auto intersections1_fine = IntersectCompositeBezierCurveWithHPolyhedra(
+      composite_curve1, As, bs, empty_mask1, 1e-2, false);
+
+  auto intersections1_coarse = IntersectCompositeBezierCurveWithHPolyhedra(
+      composite_curve1, As, bs, empty_mask1, 1e-1, false);
+
+  auto intersections2_coarse = IntersectCompositeBezierCurveWithHPolyhedra(
+      composite_curve2, As, bs, empty_mask2, 1e-1, false);
+
+  // Verify original single-curve behavior for comparison
+  bool original1_fine =
+      BezierCurveHPolyhedronCollisionFree(r1, A_obs, b_obs, 1e-2);
+  bool original1_coarse =
+      BezierCurveHPolyhedronCollisionFree(r1, A_obs, b_obs, 1e-1);
+  bool original2_coarse =
+      BezierCurveHPolyhedronCollisionFree(r2, A_obs, b_obs, 1e-1);
+
+  // Print results for debugging
+  std::cout << "Original single-curve results:" << std::endl;
+  std::cout << std::boolalpha;
+  std::cout << "  r1 fine tolerance collision-free: " << original1_fine
+            << std::endl;
+  std::cout << "  r1 coarse tolerance collision-free: " << original1_coarse
+            << std::endl;
+  std::cout << "  r2 coarse tolerance collision-free: " << original2_coarse
+            << std::endl;
+
+  std::cout << "\nComposite curve intersection results:" << std::endl;
+  std::cout << "  Curve 1 fine tolerance: ["
+            << intersections1_fine[0].size() + intersections1_fine[1].size()
+            << " total intersections]" << std::endl;
+  std::cout << "  Curve 1 coarse tolerance: ["
+            << intersections1_coarse[0].size() + intersections1_coarse[1].size()
+            << " total intersections]" << std::endl;
+  std::cout << "  Curve 2 coarse tolerance: ["
+            << intersections2_coarse[0].size() + intersections2_coarse[1].size()
+            << " total intersections]" << std::endl;
+
+  // Expected results based on original test:
+  // original1_fine = true  => composite should have no intersections (empty
+  // vectors) original1_coarse = false => composite should have intersections
+  // (non-empty) original2_coarse = false => composite should have intersections
+  // (non-empty)
+
+  EXPECT_EQ(intersections1_fine.size(), 2);    // Two segments
+  EXPECT_EQ(intersections1_coarse.size(), 2);  // Two segments
+  EXPECT_EQ(intersections2_coarse.size(), 2);  // Two segments
+
+  // If original curve was collision-free, composite segments should be too (no
+  // intersections)
+  if (original1_fine) {
+    EXPECT_TRUE(intersections1_fine[0].empty() &&
+                intersections1_fine[1].empty())
+        << "Composite segments should be collision-free when original curve is "
+           "collision-free";
+  }
+
+  // If original curve had collision, at least one composite segment should
+  // intersect
+  if (!original1_coarse) {
+    bool has_intersection =
+        !intersections1_coarse[0].empty() || !intersections1_coarse[1].empty();
+    EXPECT_TRUE(has_intersection)
+        << "At least one composite segment should intersect when original "
+           "curve has collision";
+  }
+
+  if (!original2_coarse) {
+    bool has_intersection =
+        !intersections2_coarse[0].empty() || !intersections2_coarse[1].empty();
+    EXPECT_TRUE(has_intersection)
+        << "At least one composite segment should intersect when original "
+           "curve has collision";
+  }
+
+  // Test parallel version gives same results
+  auto intersections1_parallel = IntersectCompositeBezierCurveWithHPolyhedra(
+      composite_curve1, As, bs, empty_mask1, 1e-2, true);
+
+  EXPECT_EQ(intersections1_fine.size(), intersections1_parallel.size());
+  for (size_t i = 0; i < intersections1_fine.size(); ++i) {
+    // Sort both vectors since parallel execution might change order
+    std::vector<int> fine_sorted = intersections1_fine[i];
+    std::vector<int> parallel_sorted = intersections1_parallel[i];
+    std::sort(fine_sorted.begin(), fine_sorted.end());
+    std::sort(parallel_sorted.begin(), parallel_sorted.end());
+
+    EXPECT_EQ(fine_sorted, parallel_sorted)
+        << "Segment " << i << " results differ between sequential and parallel";
+  }
 }
 
 int main(int argc, char** argv) {
