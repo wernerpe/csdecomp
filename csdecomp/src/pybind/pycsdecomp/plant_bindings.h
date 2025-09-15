@@ -245,6 +245,32 @@ void add_plant_bindings(py::module &m) {
             }
             return result;
           })
+      .def(
+          "set_collision_pairs_from_matrix",
+          [](MinimalPlant &mp, py::array_t<int32_t> collision_matrix) {
+            auto buf = collision_matrix.request();
+
+            if (buf.ndim != 2 || buf.shape[0] != 2) {
+              throw std::runtime_error("Matrix must be shape (2, N)");
+            }
+
+            int num_pairs = buf.shape[1];
+            if (num_pairs > MAX_NUM_STATIC_COLLISION_PAIRS / 2) {
+              throw std::runtime_error("Too many collision pairs");
+            }
+
+            auto matrix = collision_matrix.unchecked<2>();
+
+            // Store in column-major order to match original getMinimalPlant()
+            // behavior
+            for (int i = 0; i < num_pairs; ++i) {
+              mp.collision_pairs_flat[2 * i] = matrix(0, i);      // First row
+              mp.collision_pairs_flat[2 * i + 1] = matrix(1, i);  // Second row
+            }
+
+            mp.num_collision_pairs = num_pairs;
+          },
+          "Set collision pairs from a 2xN matrix")
       .def_property_readonly("collision_pairs_flat",
                              [](MinimalPlant &mp) {
                                return py::array_t<GeometryIndex>(

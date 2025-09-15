@@ -14,7 +14,7 @@ bool checkCollisionFree(const Eigen::VectorXf &configuration,
                                            &transforms);
   const CollisionPairMatrix cpm = Eigen::Map<const CollisionPairMatrix>(
       plant.collision_pairs_flat, 2, (int)plant.num_collision_pairs);
-
+  bool return_val = true;
   for (int pair = 0; pair < plant.num_collision_pairs; ++pair) {
     int idA = cpm(0, pair);
     int idB = cpm(1, pair);
@@ -26,9 +26,15 @@ bool checkCollisionFree(const Eigen::VectorXf &configuration,
     bool collision_free = pairCollisionFree(
         *geomA, transforms.block<4, 4>(4 * geomA->link_index, 0), *geomB,
         transforms.block<4, 4>(4 * geomB->link_index, 0));
-    if (!collision_free) return false;
+    if (!collision_free) {
+      int linkA = geomA->link_index;
+      int linkB = geomB->link_index;
+      std::cout << fmt::format("geoms colliding: ({}, {}) , links: ({},{}) ",
+                               idA, idB, linkA, linkB);
+      return_val = false;
+    }
   }
-  return true;
+  return return_val;
 }
 
 bool checkEdgeCollisionFree(const Eigen::VectorXf &configuration_1,
