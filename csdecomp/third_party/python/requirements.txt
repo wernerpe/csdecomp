@@ -67,13 +67,13 @@ cycler==0.12.1 \
     --hash=sha256:85cef7cff222d8644161529808465972e51340599459b8ac3ccbac5a854e0d30 \
     --hash=sha256:88bb128f02ba341da8ef447245a9e138fae777f6a23943da4540077d3601eb1c
     # via matplotlib
-drake==1.41.0 \
-    --hash=sha256:35cea6001f64e0716ce9a8246aab19fce1d50d7725781e2c6ed4b18660c8a663 \
-    --hash=sha256:810f4bc764dc3ba526e599a1376ab1c3fe134ac574bd43d6302274d0ecb9489d \
-    --hash=sha256:84b9f8c3e97955afdadf8b8c5cb58c0b2bd3dc2cb89ddbc9d97fdf1c48900b3d \
-    --hash=sha256:bb73ee689852eea5924e10a9df520b2c78e5e1ec5f4d37e5ad6eed10f0d13ea5 \
-    --hash=sha256:be4ce4c5220fcb77f40a1c1c3e1ae17158758b4479506cd666520b26dc95da7a \
-    --hash=sha256:cd40451f3f0923460fb9424c16154bb98d78b821a3e8332532fecce3fd92a0f7
+drake==1.45.0 \
+    --hash=sha256:74ff6191579a1ca7a83cdeddf58170fb55cb64d6768e0abea92a9852c8213fb4 \
+    --hash=sha256:9dca4cf976bde6afe5f8cbf269b8b7dd99b77ce298c46b6d11d1ad2aef6c5d46 \
+    --hash=sha256:a1d429e95c43b3fe1af156489381d3129c8ef4dd95b80d8c2a2a51a74a2adb24 \
+    --hash=sha256:b0d9bd6196dc6d3b0e660fc6351fcf236727a45ef6a7123f8dc96f85b8662ac3 \
+    --hash=sha256:bbb174445374900ad09219233af9e71022a39bfdb1f5f842d7bc8e28260bec07 \
+    --hash=sha256:f0c279b916a05d6b368f163bd4539fcfb4408d2d3a6d25fd4e3fbdeff2324b2b
     # via -r csdecomp/third_party/python/requirements.in
 fonttools==4.56.0 \
     --hash=sha256:003548eadd674175510773f73fb2060bb46adb77c94854af3e0cc5bc70260049 \
@@ -247,6 +247,12 @@ matplotlib==3.10.1 \
     # via
     #   -r csdecomp/third_party/python/requirements.in
     #   drake
+mosek==11.0.24 \
+    --hash=sha256:5e4f396bea15a4295c3f186807e7e0f2e2b76423a6ed7849336f9bd06795d674 \
+    --hash=sha256:7f2ab70ad3357f9187c96237d0c49187f82f5885250a5e211b6aa20cb0a7207f \
+    --hash=sha256:a4aa8dd9e54672f56a66ce9ec9a280881701824704b76f35b78bc73e32c9c6a9 \
+    --hash=sha256:c2530037875aa7f04738498e8f376e60340e3c3243741b3cebb40213025bcddb
+    # via drake
 mypy==1.13.0 \
     --hash=sha256:0246bcb1b5de7f08f2826451abd947bf656945209b140d16ed317f65a17dc7dc \
     --hash=sha256:0291a61b6fbf3e6673e3405cfcc0e7650bebc7939659fdca2702958038bd835e \
@@ -346,6 +352,7 @@ numpy==2.2.4 \
     #   contourpy
     #   drake
     #   matplotlib
+    #   mosek
     #   scipy
 packaging==24.2 \
     --hash=sha256:09abb1bccd265c01f4a3aa3f7a7db064b36514d2cba19a2f694fe6150451a759 \
@@ -424,6 +431,10 @@ pillow==11.1.0 \
     --hash=sha256:f86d3a7a9af5d826744fabf4afd15b9dfef44fe69a98541f666f66fbb8d3fef9 \
     --hash=sha256:fbd43429d0d7ed6533b25fc993861b8fd512c42d04514a0dd6337fb3ccf22761
     # via matplotlib
+pybind11-stubgen==2.5.1 \
+    --hash=sha256:4427a67038a00c5ac1637ffa6c65728c67c5b1251ecc23c7704152be0b14cc0b \
+    --hash=sha256:544d49df57da827c8761e7f6ef6bca996df80a33c9fd21c2521d694d4e72fe8d
+    # via -r csdecomp/third_party/python/requirements.in
 pycairo==1.27.0 \
     --hash=sha256:01505c138a313df2469f812405963532fc2511fb9bca9bdc8e0ab94c55d1ced8 \
     --hash=sha256:03bf570e3919901572987bc69237b648fe0de242439980be3e606b396e3318c9 \

@@ -119,6 +119,8 @@ py_binary(
     main = "generate_stubs.py",
     deps = [
         requirement("mypy"),
+        requirement("pybind11-stubgen"),
+        requirement("numpy")
     ],
 )
 
@@ -147,11 +149,11 @@ genrule(
            $(location drake_csd_bridge.py) \
            $(location :pycsdecomp_bindings) $(RULEDIR)/pycsdecomp/
 
-        # Run stub generation with Bazel's Python
-        # Extract just the first path from the locations expansion
+        # Run the py_binary directly - it uses Bazel's hermetic Python
         STUBS_SCRIPT="$$(echo $(locations :generate_stubs) | cut -d' ' -f1)"
         $$STUBS_SCRIPT $(RULEDIR)/pycsdecomp
     """,
+    tools = [":generate_stubs"],
 )
 
 py_library(
