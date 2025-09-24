@@ -120,7 +120,7 @@ py_binary(
     deps = [
         requirement("mypy"),
         requirement("pybind11-stubgen"),
-        requirement("numpy")
+        requirement("numpy"),
     ],
 )
 
