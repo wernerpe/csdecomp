@@ -30,7 +30,8 @@ bool checkCollisionFree(const Eigen::VectorXf &configuration,
       int linkA = geomA->link_index;
       int linkB = geomB->link_index;
       std::cout << fmt::format("geoms colliding: ({}, {}) , links: ({},{}) ",
-                               idA, idB, linkA, linkB);
+                               idA, idB, linkA, linkB)
+                << std::endl;
       return_val = false;
     }
   }
