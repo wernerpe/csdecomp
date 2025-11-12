@@ -119,8 +119,6 @@ py_binary(
     main = "generate_stubs.py",
     deps = [
         requirement("mypy"),
-        requirement("pybind11-stubgen"),
-        requirement("numpy"),
     ],
 )
 
@@ -149,11 +147,12 @@ genrule(
            $(location drake_csd_bridge.py) \
            $(location :pycsdecomp_bindings) $(RULEDIR)/pycsdecomp/
 
-        # Run the py_binary directly - it uses Bazel's hermetic Python
+        # Run stub generation with Bazel's Python
+        # Set RUNFILES_MANIFEST_FILE so the py_binary wrapper can find its dependencies
+        export RUNFILES_MANIFEST_FILE="$$(echo $(locations :generate_stubs) | cut -d' ' -f1).runfiles_manifest"
         STUBS_SCRIPT="$$(echo $(locations :generate_stubs) | cut -d' ' -f1)"
         $$STUBS_SCRIPT $(RULEDIR)/pycsdecomp
     """,
-    tools = [":generate_stubs"],
 )
 
 py_library(
