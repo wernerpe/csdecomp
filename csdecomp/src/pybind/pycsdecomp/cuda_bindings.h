@@ -27,6 +27,7 @@ void add_cuda_bindings(py::module &m) {
                      &EizoOptions::max_hyperplanes_per_iteration)
       .def_readwrite("max_iterations", &EizoOptions::max_iterations)
       .def_readwrite("mixing_steps", &EizoOptions::mixing_steps)
+      .def_readwrite("seed", &EizoOptions::seed)
       .def_readwrite("verbose", &EizoOptions::verbose)
       .def_readwrite("track_iteration_information",
                      &EizoOptions::track_iteration_information);

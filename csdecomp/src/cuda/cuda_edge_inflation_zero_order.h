@@ -9,7 +9,7 @@
 #include "hpolyhedron.h"
 #include "minimal_plant.h"
 namespace csdecomp {
-#define MAX_NUM_PARTICLES 10000
+#define MAX_NUM_PARTICLES 50000
 #define MAX_NUM_VOXELS 10000
 
 /**
@@ -26,6 +26,7 @@ struct EizoOptions {
       10};                                 ///< Max hyperplanes per iteration
   u_int32_t max_iterations{500};           ///< Maximum number of iterations
   u_int32_t mixing_steps{40};              ///< Number of mixing steps
+  u_int64_t seed{1337};                    ///< Random seed for sampler
   bool verbose{false};                     ///< Verbose output flag
   bool track_iteration_information{true};  ///< Track iteration info flag
 };

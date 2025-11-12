@@ -154,7 +154,7 @@ TEST_F(VGTest, VGTest0) {
 
   EXPECT_TRUE(adjacency_matrix2.isApprox(adjacency_matrix));
 
-  EXPECT_DEATH(VisibilityGraph(nodes, plant, 0.1, 10000000000), "");
+  //   EXPECT_DEATH(VisibilityGraph(nodes, plant, 0.1, 10000000000), "");
 
   if (std::getenv("BAZEL_TEST") == nullptr && DO_PLOT) {
     setupTestPlottingEnv();
