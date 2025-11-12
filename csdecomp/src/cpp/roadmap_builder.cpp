@@ -71,18 +71,47 @@ void RoadmapBuilder::GetRandomSamples(const int num_samples) {
 
 int RoadmapBuilder::AddNodesManual(const Eigen::MatrixXf& nodes_to_add) {
   assert(tree_.numConfigurationVariables() == nodes_to_add.rows());
-  int num_added = 0;
   const int num_nodes_in_roadmap = raw_node_data_.size();
+
+  // First, filter out nodes not in domain
+  std::vector<int> valid_indices;
+  Eigen::MatrixXf nodes_in_domain(nodes_to_add.rows(), 0);
+  nodes_in_domain.conservativeResize(Eigen::NoChange, nodes_to_add.cols());
+  int num_in_domain = 0;
+
   for (int i = 0; i < nodes_to_add.cols(); ++i) {
     if (!domain_.PointInSet(nodes_to_add.col(i))) {
       std::cout << fmt::format(
           "sample {} is not in the domain and will be ignored!\n", i);
-    } else if (checkCollisionFree(nodes_to_add.col(i), mplant_)) {
-      num_added++;
-      raw_node_data_.insert(
-          {num_nodes_in_roadmap + num_added, nodes_to_add.col(i)});
+    } else {
+      nodes_in_domain.col(num_in_domain) = nodes_to_add.col(i);
+      valid_indices.push_back(i);
+      num_in_domain++;
     }
   }
+
+  if (num_in_domain == 0) {
+    std::cout << "No nodes in domain to add.\n";
+    return 0;
+  }
+
+  // Resize to actual number of valid nodes
+  nodes_in_domain.conservativeResize(Eigen::NoChange, num_in_domain);
+
+  // Batch collision check using CUDA
+  std::vector<uint8_t> collision_free_results =
+      checkCollisionFreeCuda(&nodes_in_domain, &mplant_);
+
+  // Add collision-free nodes to roadmap
+  int num_added = 0;
+  for (int i = 0; i < num_in_domain; ++i) {
+    if (collision_free_results[i]) {
+      num_added++;
+      raw_node_data_.insert(
+          {num_nodes_in_roadmap + num_added, nodes_in_domain.col(i)});
+    }
+  }
+
   std::cout << fmt::format(
       "Added {} collision-free nodes to the existing {} nodes total is {}\n",
       num_added, num_nodes_in_roadmap, raw_node_data_.size());
