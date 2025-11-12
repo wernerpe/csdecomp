@@ -124,7 +124,8 @@ void executeEizo(MinimalHPolyhedron* P_device, const float* line_start_device,
 
     executeUniformSampleInHPolyhedronKernel(
         mem.configs_to_check_buffer.device, P_device, line_start_device,
-        num_samples_to_draw, dim, 1, options_host->mixing_steps);
+        num_samples_to_draw, dim, 1, options_host->mixing_steps,
+        options_host->seed);
     // spymemoryF<<<1, 1>>>(configs_to_check_buffer, 10 * dim);
     // check configurations for collisions
     // std::cout << fmt::format(
