@@ -88,7 +88,7 @@ def convert_drake_plant_to_csd_plant(drake_plant: MultibodyPlant,
         # print(f"drake parent body {all_drake_bodies[local_parent_id]} \
         #       csd parent {csd_links[local_parent_id].name}")
         csd_joint = csd.Joint()
-        csd_joint.name = joint.name()
+        csd_joint.name = f"{drake_plant.GetModelInstanceName(joint.model_instance())}_{joint.name()}"
         csd_joint.type = set_joint_type_by_drake_name(joint.type_name())
         if csd_joint.type != csd.JointType.FIXED:
             csd_joint.position_lower_limit = lower[0]

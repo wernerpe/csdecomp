@@ -128,5 +128,18 @@ class DrmPlanner {
   bool is_initialized_ = false;
   bool drm_loaded_ = false;
   bool quiet_mode_ = false;
+
+ private:
+  // Validates roadmap nodes against current robot geometry (self-collision).
+  // Called automatically by LoadRoadmap().
+  void ValidateRoadmapGeometry();
+
+  // Nodes invalid due to robot geometry changes (e.g., grasped objects).
+  // These persist across BuildCollisionSet() calls.
+  std::unordered_set<int32_t> geometry_invalid_nodes_;
+
+  // Nodes invalid due to environment voxels.
+  // These are rebuilt on each BuildCollisionSet() call.
+  std::unordered_set<int32_t> environment_collision_nodes_;
 };
 }  // namespace csdecomp

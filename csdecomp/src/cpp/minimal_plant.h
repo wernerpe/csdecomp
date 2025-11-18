@@ -29,7 +29,7 @@ struct MinimalPlant {
   /**
    * @brief Flattened array of collision pair indices.
    */
-  GeometryIndex collision_pairs_flat[MAX_NUM_STATIC_COLLISION_PAIRS];
+  GeometryIndex collision_pairs_flat[2 * MAX_NUM_STATIC_COLLISION_PAIRS];
 
   /** @brief The number of collision geometries in the scene. */
   int32_t num_scene_geometries;

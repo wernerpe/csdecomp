@@ -99,7 +99,68 @@ void DrmPlanner::LoadRoadmap(const std::string& road_map_filename) {
         "to rebuild the roadmap.",
         drm_.target_link_index_,
         tree_.getLinkIndexByName(drm_.target_link_name_));
-  };
+  }
+
+  // Validate roadmap nodes against current robot geometry
+  ValidateRoadmapGeometry();
+}
+
+void DrmPlanner::ValidateRoadmapGeometry() {
+  assert(is_initialized_);
+  assert(drm_loaded_);
+
+  std::cout << "[DRMPlanner] Validating roadmap nodes against current robot "
+               "geometry..."
+            << std::endl;
+
+  // Clear all collision tracking state
+  geometry_invalid_nodes_.clear();
+  environment_collision_nodes_.clear();
+  collision_set_.clear();
+  forbidden_edge_set_.clear();
+
+  // Prepare all configurations for batch checking
+  const size_t num_nodes = drm_.id_to_node_map.size();
+  Eigen::MatrixXf all_configs(num_joints_, num_nodes);
+  std::vector<int32_t> node_ids;
+  node_ids.reserve(num_nodes);
+
+  size_t col_idx = 0;
+  for (const auto& [id, config] : drm_.id_to_node_map) {
+    all_configs.col(col_idx) = config;
+    node_ids.push_back(id);
+    ++col_idx;
+  }
+
+  // Check against empty environment (just robot self-collision/attached
+  // geometry)
+  const Voxels empty_voxels = Eigen::MatrixXf::Zero(3, 0);
+  const std::vector<uint8_t> is_config_col_free =
+      checkCollisionFreeVoxelsCuda(&all_configs, &empty_voxels, 0.0f, &mplant_,
+                                   inspector_.robot_geometry_ids);
+
+  // Add colliding nodes to both sets
+  size_t num_invalid = 0;
+  for (size_t i = 0; i < is_config_col_free.size(); ++i) {
+    if (!is_config_col_free[i]) {
+      geometry_invalid_nodes_.insert(node_ids[i]);
+      collision_set_.insert(node_ids[i]);  // Also add to collision_set_
+      ++num_invalid;
+    }
+  }
+
+  if (num_invalid > 0) {
+    std::cout << fmt::format(
+        "[DRMPlanner] Warning! Found {}/{} roadmap nodes in self-collision "
+        "with current geometry. This indicates the robot geometry has changed "
+        "since the roadmap was built (e.g., grasped object, modified collision "
+        "geometry). These nodes will be permanently excluded from planning.\n",
+        num_invalid, num_nodes);
+  } else {
+    std::cout << "[DRMPlanner] All roadmap nodes are valid with current "
+                 "geometry."
+              << std::endl;
+  }
 }
 
 double DrmPlanner::Distance(const Eigen::VectorXf& joints_1,
@@ -113,52 +174,60 @@ void DrmPlanner::BuildCollisionSet(const Voxels& root_p_voxels) {
   assert(drm_.options.offline_voxel_resolution >
          std::numeric_limits<double>::epsilon());
 
+  // Clear ONLY environment-based collision state
+  environment_collision_nodes_.clear();
   collision_set_.clear();
   forbidden_edge_set_.clear();
 
+  // Re-add geometry invalid nodes first
+  for (const auto& node_id : geometry_invalid_nodes_) {
+    collision_set_.insert(node_id);
+  }
+
   std::unordered_set<int32_t> checked_id;
-  std::cout << fmt::format(
-      "used options\n x: {} y: {} z: {} \n", drm_.options.robot_map_size_x,
-      drm_.options.robot_map_size_y, drm_.options.robot_map_size_z);
+  if (!quiet_mode_) {
+    std::cout << fmt::format(
+        "Building collision set with workspace: x: {} y: {} z: {}\n",
+        drm_.options.robot_map_size_x, drm_.options.robot_map_size_y,
+        drm_.options.robot_map_size_z);
+  }
+
   for (int ii = 0; ii < root_p_voxels.cols(); ++ii) {
     const int32_t id = GetCollisionVoxelId(root_p_voxels.col(ii), drm_.options);
-    // if (true) {
-    //   // std::cout << "\n Voxel: \n"
-    //   //           << root_p_voxels.col(ii).transpose() << "  Voxel ID: " <<
-    //   id
-    //   //           << std::endl;
-    // }
+
     if (checked_id.find(id) == checked_id.end()) {
       checked_id.insert(id);
     } else {
       continue;
     }
-    // Skip if ID has been processed already.
+
+    // Add nodes from collision_map
     if (drm_.collision_map.find(id) != drm_.collision_map.end()) {
       for (const auto& element : drm_.collision_map.at(id)) {
         if (!quiet_mode_) {
           std::cout << "Inserting element ID: " << element
-                    << "  , which represents position."
+                    << ", which represents position "
                     << drm_.id_to_node_map.at(element).transpose() << std::endl;
         }
+        environment_collision_nodes_.insert(element);
         collision_set_.insert(element);
       }
     }
 
-    // Build edge_collision_set
+    // Add blocked edges from edge_collision_map
     if (drm_.edge_collision_map.find(id) != drm_.edge_collision_map.end()) {
       for (const auto& edge : drm_.edge_collision_map.at(id)) {
-        // std::unordered_set<std::vector<int32_t>, roadmaputils::VectorHash>
-        // tmp = loc_edge_collision_set;
         forbidden_edge_set_.insert(
             std::vector<int32_t>{edge.at(0), edge.at(1)});
       }
     }
   }
 
-  std::cout << "Built collision set of size: " << collision_set_.size()
-            << std::endl;
-  std::cout << "Built edge collision set of size: "
+  std::cout << fmt::format(
+      "Built collision set: {} total ({} from geometry, {} from environment)\n",
+      collision_set_.size(), geometry_invalid_nodes_.size(),
+      environment_collision_nodes_.size());
+  std::cout << "Built forbidden edge set of size: "
             << forbidden_edge_set_.size() << std::endl;
 }
 
