@@ -57,6 +57,17 @@ class URDFParser {
                        const std::string &package_path);
   /**
    * @brief Parses a directives file, and creates a temporary single urdf
+   * combining all models, returning the URDF as a string.
+   * @param directives_file The path to the directives.yaml file.
+   * @return The combined URDF as a string, or empty string if parsing failed.
+   *
+   * @note Make sure that all branches of the kinematic tree connect to the
+   * world frame.
+   */
+  std::string parseDirectivesToURDFString(const std::string &directives_file);
+
+  /**
+   * @brief Parses a directives file, and creates a temporary single urdf
    * combining all models.
    * @param directives_file The path to the directives.yaml file.
    * @return True if parsing was successful, false otherwise.

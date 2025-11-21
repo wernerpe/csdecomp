@@ -615,12 +615,13 @@ void URDFParser::finalizeScene() {
       scene_collision_geometry_name_to_id;
 }
 
-bool URDFParser::parseDirectives(const std::string &directives_file) {
+std::string URDFParser::parseDirectivesToURDFString(
+    const std::string &directives_file) {
   YAML::Node config = YAML::LoadFile(directives_file);
 
   if (!config["directives"]) {
     std::cerr << "Error: No 'directives' found in the YAML file." << std::endl;
-    return false;
+    return "";
   }
 
   std::stringstream combined_urdf;
@@ -643,7 +644,7 @@ bool URDFParser::parseDirectives(const std::string &directives_file) {
         std::cerr << "[CSDECOMP:ParseDirectives] Error loading URDF file: "
                   << file << " that maps to: " << resolvePackagePath(file)
                   << std::endl;
-        return false;
+        return "";
       }
 
       tinyxml2::XMLPrinter printer;
@@ -696,8 +697,19 @@ bool URDFParser::parseDirectives(const std::string &directives_file) {
 
   combined_urdf << "</robot>";
 
+  return combined_urdf.str();
+}
+
+bool URDFParser::parseDirectives(const std::string &directives_file) {
+  std::string combined_urdf_string =
+      parseDirectivesToURDFString(directives_file);
+
+  if (combined_urdf_string.empty()) {
+    return false;
+  }
+
   // Parse the combined URDF
-  bool result = parseURDFString(combined_urdf.str());
+  bool result = parseURDFString(combined_urdf_string);
 
   return result;
 }

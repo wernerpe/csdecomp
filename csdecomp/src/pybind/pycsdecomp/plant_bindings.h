@@ -16,6 +16,8 @@ void add_plant_bindings(py::module &m) {
       .def("parse_urdf", &URDFParser::parseURDF)
       .def("parse_urdf_string", &URDFParser::parseURDFString)
       .def("register_package", &URDFParser::registerPackage)
+      .def("parse_directives_to_urdf_string",
+           &URDFParser::parseDirectivesToURDFString)
       .def("parse_directives", &URDFParser::parseDirectives)
       .def("get_minimal_plant", &URDFParser::getMinimalPlant)
       .def("get_kinematic_tree", &URDFParser::getKinematicTree)

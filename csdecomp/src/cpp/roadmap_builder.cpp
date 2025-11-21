@@ -371,6 +371,11 @@ void RoadmapBuilder::BuildCollisionMap() {
       num_configurations * computation_chunk_min_size;
   uint64_t num_config_chunks = required_computation / budget;
 
+  // Ensure we have at least 1 chunk if needed
+  if (num_config_chunks == 0 && required_computation > budget) {
+    num_config_chunks = 1;
+  }
+
   // Collision results are stored as |config_0 - voxel_0 | config_0 - voxel_1
   // |
   // ... | config_0 - voxel_n | config_1 - voxel_0 | ... | config_n - voxel_n|
@@ -379,7 +384,8 @@ void RoadmapBuilder::BuildCollisionMap() {
     collision_free_results = checkCollisionFreeVoxelsWithoutSelfCollisionCuda(
         &qfree, &voxels, voxel_radius, &mplant_, robot_geometry_ids);
   } else {
-    uint64_t num_configs_per_chunk = num_configurations / num_config_chunks;
+    // Calculate max configs per chunk that fits in budget
+    uint64_t num_configs_per_chunk = budget / computation_chunk_min_size;
     if (num_configs_per_chunk == 0) {
       throw std::runtime_error(
           " Not enough memory budget allocated. Try increasing. Warning this "
@@ -387,46 +393,37 @@ void RoadmapBuilder::BuildCollisionMap() {
           "cause Malloc errors if chosen too high.");
     }
 
+    // Recalculate number of chunks based on configs per chunk
+    num_config_chunks = (num_configurations + num_configs_per_chunk - 1) /
+                        num_configs_per_chunk;
+
     std::cout << fmt::format(
         "Min chunk size: {} \n num configs: {}\n allocated budget: {}\n num "
         "config chunks: {}\n num configs per chunk:{}\n",
         computation_chunk_min_size, num_configurations, budget,
         num_config_chunks, num_configs_per_chunk);
     std::vector<uint8_t> tmp_results;
-    int num_configs_covered = 0;
-    for (int batch_idx = 0; batch_idx < num_config_chunks; ++batch_idx) {
+    size_t num_configs_covered = 0;
+    for (uint64_t batch_idx = 0; batch_idx < num_config_chunks; ++batch_idx) {
+      uint64_t start_idx = batch_idx * num_configs_per_chunk;
+      uint64_t batch_size =
+          std::min(num_configs_per_chunk,
+                   static_cast<uint64_t>(num_configurations) - start_idx);
+
       Eigen::MatrixXf config_batch =
-          qfree
-              .block(0, batch_idx * num_configs_per_chunk,
-                     configuration_dimension_, num_configs_per_chunk)
+          qfree.block(0, start_idx, configuration_dimension_, batch_size)
               .eval();
       tmp_results = checkCollisionFreeVoxelsWithoutSelfCollisionCuda(
           &config_batch, &voxels, voxel_radius, &mplant_, robot_geometry_ids);
       for (const auto& t : tmp_results) {
         collision_free_results.push_back(t);
       }
-      num_configs_covered += num_configs_per_chunk;
+      num_configs_covered += batch_size;
       std::cout
           << fmt::format(
                  "[DrmBuilder] Collision map built for {}/{} configurations\n",
                  num_configs_covered, num_configurations)
           << std::flush;
-    }
-    if (num_configurations - num_configs_covered) {
-      // cover the remainder if there is one
-
-      Eigen::MatrixXf config_batch_final =
-          qfree
-              .block(0, num_config_chunks * num_configs_per_chunk,
-                     configuration_dimension_,
-                     num_configurations - num_configs_covered)
-              .eval();
-      tmp_results = checkCollisionFreeVoxelsWithoutSelfCollisionCuda(
-          &config_batch_final, &voxels, voxel_radius, &mplant_,
-          robot_geometry_ids);
-      for (const auto& t : tmp_results) {
-        collision_free_results.push_back(t);
-      }
     }
     std::cout << fmt::format(
         "[DrmBuilder] Finished collision checking work \n");
