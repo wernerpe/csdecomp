@@ -461,4 +461,79 @@ std::vector<std::vector<int>> IntersectCompositeBezierCurveWithHPolyhedra(
     const std::vector<std::vector<int>>& hpoly_to_ignore, double tol = 1e-2,
     bool parallelize = true);
 
+/**
+ * @brief Check if a Bezier curve is collision-free with a sphere obstacle
+ *
+ * Uses recursive subdivision algorithm to determine if a Bezier curve
+ * intersects with a sphere defined by center and radius. The algorithm
+ * constructs a separating hyperplane by computing the mean of control points
+ * and creating a tangent plane to the sphere facing the control points.
+ *
+ * The separation certificate works as follows:
+ * - Normal: a = normalize(mean - center) points from sphere to control points
+ * - Tangent point: center + a * radius
+ * - Hyperplane: a^T * x + b = 0 where b = -a^T * (center + a * radius)
+ * - Points are safe if a^T * p + b >= 0
+ *
+ * @param curve The Bezier curve to check
+ * @param center The center of the sphere (dimension x 1 vector)
+ * @param radius The radius of the sphere
+ * @param tol Tolerance for collision detection algorithm (default: 1e-2)
+ *
+ * @return uint8_t Returns 1 if curve is proven collision-free, 0 if collision
+ * detected or cannot be proven collision-free within tolerance
+ *
+ * @pre center.size() must equal curve.dimension()
+ * @pre radius must be positive
+ * @pre tol must be positive
+ *
+ * @note Uses convex hull property of Bezier curves - if control points are
+ * separated by a hyperplane, the curve is guaranteed collision-free.
+ * @note May return false positives (report collision when curve is actually
+ * safe) but never returns false negatives.
+ */
+uint8_t BezierCurveSphereCollisionFree(const BezierCurve& curve,
+                                       const Eigen::VectorXd& center,
+                                       double radius, double tol = 1e-2);
+
+/**
+ * @brief Find intersections between composite Bezier curve segments and sphere
+ * obstacles
+ *
+ * For each segment of the composite Bezier curve, determines which sphere
+ * obstacles it potentially intersects with. Uses the
+ * BezierCurveSphereCollisionFree function to check collision status - segments
+ * that are NOT collision-free are considered to intersect.
+ *
+ * @param c The composite Bezier curve to analyze
+ * @param centers Vector of sphere centers, one for each sphere (each center_i
+ * has shape dimension x 1)
+ * @param radii Vector of sphere radii, one for each sphere
+ * @param spheres_to_ignore Vector containing one vector per segment that
+ * contains obstacle indices. If an index is present the corresponding sphere is
+ * not checked for collision.
+ * @param tol Tolerance for collision detection algorithm (default: 1e-2)
+ * @param parallelize Whether to use parallel processing over segments (default:
+ * true)
+ *
+ * @return std::vector<std::vector<int>> A vector where result[i] contains the
+ * indices of all spheres that segment i intersects with. Empty vector for
+ * segment i means segment i is collision-free with respect to all spheres.
+ *
+ * @pre centers.size() must equal radii.size()
+ * @pre For each i: centers[i].size() must equal c.dimension()
+ * @pre For each i: radii[i] must be positive
+ * @pre tol must be positive
+ *
+ * @note An intersection is detected when BezierCurveSphereCollisionFree returns
+ * false, meaning the segment is not proven to be collision-free.
+ * @note Parallelizes over curve segments.
+ */
+std::vector<std::vector<int>> IntersectCompositeBezierCurveWithSpheres(
+    const CompositeBezierCurve& c,
+    const std::vector<Eigen::VectorXd>& centers,
+    const std::vector<double>& radii,
+    const std::vector<std::vector<int>>& spheres_to_ignore, double tol = 1e-2,
+    bool parallelize = true);
+
 }  // namespace csdecomp

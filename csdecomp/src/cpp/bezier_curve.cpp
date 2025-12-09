@@ -510,6 +510,98 @@ uint8_t BezierCurveHPolyhedronCollisionFree(const BezierCurve& curve,
   return col_free1 && col_free2;
 }
 
+uint8_t BezierCurveSphereCollisionFree(const BezierCurve& curve,
+                                       const Eigen::VectorXd& center,
+                                       double radius, double tol) {
+  // Get control points as matrix (rows = control points, cols = dimensions)
+  const Eigen::MatrixXd& pts = curve.points();
+
+  // Compute mean of control points
+  Eigen::VectorXd mean = pts.colwise().mean();
+
+  // Construct separating hyperplane
+  // Normal vector pointing from sphere center toward control points
+  Eigen::VectorXd a = mean - center;
+  double a_norm = a.norm();
+
+  // Check if mean is too close to center (degenerate case)
+  if (a_norm < 1e-10) {
+    // Control points are centered at sphere center, check if any point is
+    // outside
+    for (int i = 0; i < pts.rows(); ++i) {
+      Eigen::VectorXd diff = pts.row(i).transpose() - center;
+      if (diff.norm() > radius) {
+        // At least one point is outside, need to subdivide
+        // Fall through to subdivision logic
+        a = Eigen::VectorXd::Constant(center.size(), 1.0 / std::sqrt(center.size()));
+        a_norm = 1.0;
+        break;
+      }
+    }
+    if (a_norm < 1e-10) {
+      // All points are at center, definitely in collision
+      return false;
+    }
+  }
+
+  // Normalize to get unit normal
+  a = a / a_norm;
+
+  // Tangent point on sphere surface
+  Eigen::VectorXd tangent_pt = center + a * radius;
+
+  // Hyperplane offset: b = -a^T * tangent_pt
+  double b = -a.dot(tangent_pt);
+
+  // Check if all control points are on the safe side: a^T * p + b >= 0
+  Eigen::VectorXd violations(pts.rows());
+  for (int i = 0; i < pts.rows(); ++i) {
+    violations(i) = a.dot(pts.row(i).transpose()) + b;
+  }
+
+  // Check if start and end points are collision-free (outside sphere)
+  Eigen::VectorXd start_diff = pts.row(0).transpose() - center;
+  Eigen::VectorXd end_diff = pts.row(pts.rows() - 1).transpose() - center;
+  bool start_col_free = start_diff.norm() > radius;
+  bool end_col_free = end_diff.norm() > radius;
+  bool start_and_end_col_free = start_col_free && end_col_free;
+
+  // Check if all points are on the safe side of the separating hyperplane
+  bool all_points_safe = (violations.array() >= 0.0).all();
+
+  // Compute bounding sphere radius of control points
+  Eigen::MatrixXd diff = pts.rowwise() - mean.transpose();
+  Eigen::VectorXd norms(diff.rows());
+  for (int i = 0; i < diff.rows(); ++i) {
+    norms(i) = diff.row(i).norm();
+  }
+  double bounding_radius = norms.maxCoeff();
+
+  bool min_tol_reached = bounding_radius <= tol;
+
+  // Early returns based on collision conditions
+  if (!start_and_end_col_free) {
+    return false;
+  }
+
+  if (all_points_safe) {
+    return true;
+  }
+
+  if (min_tol_reached) {
+    return false;
+  }
+
+  // Recursive subdivision
+  double mid_time = (curve.initial_time() + curve.final_time()) / 2.0;
+  auto [r1, r2] = curve.domain_split(mid_time);
+
+  bool col_free1 = BezierCurveSphereCollisionFree(r1, center, radius, tol);
+  bool col_free2 = BezierCurveSphereCollisionFree(r2, center, radius, tol);
+
+  return col_free1 && col_free2;
+}
+
 std::vector<std::vector<int>> IntersectCompositeBezierCurveWithHPolyhedra(
     const CompositeBezierCurve& c, const std::vector<Eigen::MatrixXd>& As,
     const std::vector<Eigen::VectorXd>& bs,
@@ -569,6 +661,75 @@ std::vector<std::vector<int>> IntersectCompositeBezierCurveWithHPolyhedra(
 
         if (!BezierCurveHPolyhedronCollisionFree(segment, As[obs_idx],
                                                  bs[obs_idx], tol)) {
+          intersections[seg_idx].push_back(static_cast<int>(obs_idx));
+        }
+      }
+    }
+  }
+
+  return intersections;
+}
+
+std::vector<std::vector<int>> IntersectCompositeBezierCurveWithSpheres(
+    const CompositeBezierCurve& c,
+    const std::vector<Eigen::VectorXd>& centers,
+    const std::vector<double>& radii,
+    const std::vector<std::vector<int>>& spheres_to_ignore, double tol,
+    bool parallelize) {
+  // Validate input dimensions
+  if (centers.size() != radii.size()) {
+    throw std::invalid_argument("centers and radii must have the same size");
+  }
+
+  const size_t num_segments = c.num_segments();
+  const size_t num_obstacles = centers.size();
+
+  if (spheres_to_ignore.size() != num_segments) {
+    throw std::invalid_argument(
+        "spheres_to_ignore size must equal number of segments");
+  }
+
+  // Initialize result vector
+  std::vector<std::vector<int>> intersections(num_segments);
+
+  if (parallelize) {
+#pragma omp parallel for schedule(dynamic)
+    for (size_t seg_idx = 0; seg_idx < num_segments; ++seg_idx) {
+      const BezierCurve& segment = c[seg_idx];
+
+      // Convert ignore list to unordered_set for O(1) lookup
+      std::unordered_set<int> ignore_set(spheres_to_ignore[seg_idx].begin(),
+                                         spheres_to_ignore[seg_idx].end());
+
+      for (size_t obs_idx = 0; obs_idx < num_obstacles; ++obs_idx) {
+        // Skip this obstacle if it's in the ignore list for this segment
+        if (ignore_set.find(static_cast<int>(obs_idx)) != ignore_set.end()) {
+          continue;
+        }
+
+        if (!BezierCurveSphereCollisionFree(segment, centers[obs_idx],
+                                            radii[obs_idx], tol)) {
+          intersections[seg_idx].push_back(static_cast<int>(obs_idx));
+        }
+      }
+    }
+  } else {
+    // Sequential version
+    for (size_t seg_idx = 0; seg_idx < num_segments; ++seg_idx) {
+      const BezierCurve& segment = c[seg_idx];
+
+      // Convert ignore list to unordered_set for O(1) lookup
+      std::unordered_set<int> ignore_set(spheres_to_ignore[seg_idx].begin(),
+                                         spheres_to_ignore[seg_idx].end());
+
+      for (size_t obs_idx = 0; obs_idx < num_obstacles; ++obs_idx) {
+        // Skip this obstacle if it's in the ignore list for this segment
+        if (ignore_set.find(static_cast<int>(obs_idx)) != ignore_set.end()) {
+          continue;
+        }
+
+        if (!BezierCurveSphereCollisionFree(segment, centers[obs_idx],
+                                            radii[obs_idx], tol)) {
           intersections[seg_idx].push_back(static_cast<int>(obs_idx));
         }
       }

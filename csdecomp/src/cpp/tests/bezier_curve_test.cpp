@@ -690,6 +690,168 @@ GTEST_TEST(BezierCurveTest2, CompositeBezierIntersectionCheck) {
   }
 }
 
+GTEST_TEST(BezierCurveTest2, CompositeBezierSphereIntersectionCheck) {
+  // Create 3 sphere obstacles with radius 0.1 at positions along y=0.5
+  std::vector<Eigen::VectorXd> centers;
+  std::vector<double> radii;
+
+  Eigen::VectorXd center1(2);
+  center1 << 0.3, 0.5;
+  centers.push_back(center1);
+  radii.push_back(0.1);
+
+  Eigen::VectorXd center2(2);
+  center2 << 0.5, 0.5;
+  centers.push_back(center2);
+  radii.push_back(0.1);
+
+  Eigen::VectorXd center3(2);
+  center3 << 0.7, 0.5;
+  centers.push_back(center3);
+  radii.push_back(0.1);
+
+  // Test case 1: height = 0.615 (should have collision)
+  {
+    double height = 0.615;
+
+    // Create waypoints for composite curve
+    Eigen::MatrixXd wps1(3, 2);
+    wps1 << 0.1, 0.5, 0.2, height, 0.5, height;
+
+    Eigen::MatrixXd wps2(3, 2);
+    wps2 << 0.5, height, 0.8, height, 0.9, 0.5;
+
+    // Create two Bezier curve segments
+    BezierCurve curve1(wps1, 0.0, 0.5);
+    BezierCurve curve2(wps2, 0.5, 1.0);
+
+    // Create composite curve
+    std::vector<BezierCurve> segments = {curve1, curve2};
+    CompositeBezierCurve composite_curve(segments);
+
+    // Create empty ignore mask (check all obstacles for all segments)
+    std::vector<std::vector<int>> empty_mask(2);
+
+    // Test intersection detection
+    auto intersections = IntersectCompositeBezierCurveWithSpheres(
+        composite_curve, centers, radii, empty_mask, 1e-2, false);
+
+    // Count total intersections across all segments
+    size_t total_intersections = 0;
+    for (const auto& seg_intersections : intersections) {
+      total_intersections += seg_intersections.size();
+    }
+
+    std::cout << "\nSphere collision test (height = " << height << "):"
+              << std::endl;
+    std::cout << "  Total intersections detected: " << total_intersections
+              << std::endl;
+    std::cout << "  Segment 0 intersects with spheres: ";
+    for (int idx : intersections[0]) {
+      std::cout << idx << " ";
+    }
+    std::cout << std::endl;
+    std::cout << "  Segment 1 intersects with spheres: ";
+    for (int idx : intersections[1]) {
+      std::cout << idx << " ";
+    }
+    std::cout << std::endl;
+
+    // At height 0.615, there should be collisions
+    EXPECT_GT(total_intersections, 0)
+        << "Expected collision at height 0.615, but no intersections detected";
+  }
+
+  // Test case 2: height = 0.628 (should be collision-free)
+  {
+    double height = 0.628;
+
+    // Create waypoints for composite curve
+    Eigen::MatrixXd wps1(3, 2);
+    wps1 << 0.1, 0.5, 0.2, height, 0.5, height;
+
+    Eigen::MatrixXd wps2(3, 2);
+    wps2 << 0.5, height, 0.8, height, 0.9, 0.5;
+
+    // Create two Bezier curve segments
+    BezierCurve curve1(wps1, 0.0, 0.5);
+    BezierCurve curve2(wps2, 0.5, 1.0);
+
+    // Create composite curve
+    std::vector<BezierCurve> segments = {curve1, curve2};
+    CompositeBezierCurve composite_curve(segments);
+
+    // Create empty ignore mask (check all obstacles for all segments)
+    std::vector<std::vector<int>> empty_mask(2);
+
+    // Test intersection detection
+    auto intersections = IntersectCompositeBezierCurveWithSpheres(
+        composite_curve, centers, radii, empty_mask, 1e-2, false);
+
+    // Count total intersections across all segments
+    size_t total_intersections = 0;
+    for (const auto& seg_intersections : intersections) {
+      total_intersections += seg_intersections.size();
+    }
+
+    std::cout << "\nSphere collision test (height = " << height << "):"
+              << std::endl;
+    std::cout << "  Total intersections detected: " << total_intersections
+              << std::endl;
+    std::cout << "  Segment 0 intersects with spheres: ";
+    for (int idx : intersections[0]) {
+      std::cout << idx << " ";
+    }
+    std::cout << std::endl;
+    std::cout << "  Segment 1 intersects with spheres: ";
+    for (int idx : intersections[1]) {
+      std::cout << idx << " ";
+    }
+    std::cout << std::endl;
+
+    // At height 0.628, there should be no collisions
+    EXPECT_EQ(total_intersections, 0)
+        << "Expected no collision at height 0.628, but " << total_intersections
+        << " intersections detected";
+  }
+
+  // Test parallel version gives same results
+  {
+    double height = 0.615;
+    Eigen::MatrixXd wps1(3, 2);
+    wps1 << 0.1, 0.5, 0.2, height, 0.5, height;
+
+    Eigen::MatrixXd wps2(3, 2);
+    wps2 << 0.5, height, 0.8, height, 0.9, 0.5;
+
+    BezierCurve curve1(wps1, 0.0, 0.5);
+    BezierCurve curve2(wps2, 0.5, 1.0);
+    std::vector<BezierCurve> segments = {curve1, curve2};
+    CompositeBezierCurve composite_curve(segments);
+
+    std::vector<std::vector<int>> empty_mask(2);
+
+    auto intersections_sequential = IntersectCompositeBezierCurveWithSpheres(
+        composite_curve, centers, radii, empty_mask, 1e-2, false);
+
+    auto intersections_parallel = IntersectCompositeBezierCurveWithSpheres(
+        composite_curve, centers, radii, empty_mask, 1e-2, true);
+
+    EXPECT_EQ(intersections_sequential.size(), intersections_parallel.size());
+    for (size_t i = 0; i < intersections_sequential.size(); ++i) {
+      // Sort both vectors since parallel execution might change order
+      std::vector<int> seq_sorted = intersections_sequential[i];
+      std::vector<int> par_sorted = intersections_parallel[i];
+      std::sort(seq_sorted.begin(), seq_sorted.end());
+      std::sort(par_sorted.begin(), par_sorted.end());
+
+      EXPECT_EQ(seq_sorted, par_sorted)
+          << "Segment " << i
+          << " results differ between sequential and parallel execution";
+    }
+  }
+}
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
