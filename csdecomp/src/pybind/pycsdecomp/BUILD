@@ -119,6 +119,7 @@ py_binary(
     main = "generate_stubs.py",
     deps = [
         requirement("mypy"),
+        requirement("numpy"),
     ],
 )
 
@@ -153,6 +154,7 @@ genrule(
         STUBS_SCRIPT="$$(echo $(locations :generate_stubs) | cut -d' ' -f1)"
         $$STUBS_SCRIPT $(RULEDIR)/pycsdecomp
     """,
+    tools = [":generate_stubs"],
 )
 
 py_library(
