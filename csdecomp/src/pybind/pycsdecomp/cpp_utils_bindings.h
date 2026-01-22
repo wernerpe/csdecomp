@@ -394,9 +394,10 @@ void add_cpp_utils_bindings(py::module& m) {
       bs : list of numpy.ndarray  
           Vector of constraint vectors, one for each H-polyhedron
           (each b_i has shape num_constraints_i x 1)
-      hpoly_to_ignore : list of int
-          Vector containing one vector per segment that contains obstacle indices.
-          If an index is present the corresponding obstacle is not checked for collision.
+      hpoly_to_ignore : dict
+          Dictionary mapping segment indices to lists of obstacle indices to ignore.
+          If an obstacle index is present in the list for a segment, that obstacle
+          is not checked for collision with that segment.
       tol : float, optional
           Tolerance for collision detection algorithm (default: 1e-2)
       parallelize : bool, optional
@@ -404,10 +405,10 @@ void add_cpp_utils_bindings(py::module& m) {
 
       Returns
       -------
-      list of list of int
-          A vector where result[i] contains the indices of all H-polyhedrons that 
-          segment i intersects with. Empty list for segment i means segment i is 
-          collision-free with respect to all obstacles.
+      dict
+          A dictionary where result[seg_idx] contains the indices of all H-polyhedrons
+          that segment seg_idx intersects with. Segments with no collisions are not
+          included in the dictionary.
 
       Notes
       -----

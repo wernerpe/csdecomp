@@ -594,18 +594,18 @@ GTEST_TEST(BezierCurveTest2, CompositeBezierIntersectionCheck) {
   std::vector<Eigen::VectorXd> bs = {b_obs};
 
   // Create empty mask (no obstacles to ignore)
-  std::vector<std::vector<int>> empty_mask1(2);  // 2 segments, no ignores
-  std::vector<std::vector<int>> empty_mask2(2);  // 2 segments, no ignores
+  std::unordered_map<int, std::vector<int>>
+      empty_mask;  // Empty map means no ignores
 
   // Test with same tolerances as original
   auto intersections1_fine = IntersectCompositeBezierCurveWithHPolyhedra(
-      composite_curve1, As, bs, empty_mask1, 1e-2, false);
+      composite_curve1, As, bs, empty_mask, 1e-2, false);
 
   auto intersections1_coarse = IntersectCompositeBezierCurveWithHPolyhedra(
-      composite_curve1, As, bs, empty_mask1, 1e-1, false);
+      composite_curve1, As, bs, empty_mask, 1e-1, false);
 
   auto intersections2_coarse = IntersectCompositeBezierCurveWithHPolyhedra(
-      composite_curve2, As, bs, empty_mask2, 1e-1, false);
+      composite_curve2, As, bs, empty_mask, 1e-1, false);
 
   // Verify original single-curve behavior for comparison
   bool original1_fine =
@@ -625,68 +625,81 @@ GTEST_TEST(BezierCurveTest2, CompositeBezierIntersectionCheck) {
   std::cout << "  r2 coarse tolerance collision-free: " << original2_coarse
             << std::endl;
 
+  // Helper to count total intersections in a map
+  auto count_intersections =
+      [](const std::unordered_map<int, std::vector<int>>& m) {
+        size_t count = 0;
+        for (const auto& [seg_idx, obs_vec] : m) {
+          count += obs_vec.size();
+        }
+        return count;
+      };
+
   std::cout << "\nComposite curve intersection results:" << std::endl;
   std::cout << "  Curve 1 fine tolerance: ["
-            << intersections1_fine[0].size() + intersections1_fine[1].size()
+            << count_intersections(intersections1_fine)
             << " total intersections]" << std::endl;
   std::cout << "  Curve 1 coarse tolerance: ["
-            << intersections1_coarse[0].size() + intersections1_coarse[1].size()
+            << count_intersections(intersections1_coarse)
             << " total intersections]" << std::endl;
   std::cout << "  Curve 2 coarse tolerance: ["
-            << intersections2_coarse[0].size() + intersections2_coarse[1].size()
+            << count_intersections(intersections2_coarse)
             << " total intersections]" << std::endl;
 
   // Expected results based on original test:
   // original1_fine = true  => composite should have no intersections (empty
-  // vectors) original1_coarse = false => composite should have intersections
-  // (non-empty) original2_coarse = false => composite should have intersections
-  // (non-empty)
+  // map) original1_coarse = false => composite should have intersections
+  // (non-empty map) original2_coarse = false => composite should have
+  // intersections (non-empty map)
 
-  EXPECT_EQ(intersections1_fine.size(), 2);    // Two segments
-  EXPECT_EQ(intersections1_coarse.size(), 2);  // Two segments
-  EXPECT_EQ(intersections2_coarse.size(), 2);  // Two segments
-
-  // If original curve was collision-free, composite segments should be too (no
-  // intersections)
+  // If original curve was collision-free, composite segments should be too
+  // (empty map)
   if (original1_fine) {
-    EXPECT_TRUE(intersections1_fine[0].empty() &&
-                intersections1_fine[1].empty())
+    EXPECT_TRUE(intersections1_fine.empty())
         << "Composite segments should be collision-free when original curve is "
            "collision-free";
   }
 
   // If original curve had collision, at least one composite segment should
-  // intersect
+  // intersect (non-empty map)
   if (!original1_coarse) {
-    bool has_intersection =
-        !intersections1_coarse[0].empty() || !intersections1_coarse[1].empty();
-    EXPECT_TRUE(has_intersection)
+    EXPECT_FALSE(intersections1_coarse.empty())
         << "At least one composite segment should intersect when original "
            "curve has collision";
   }
 
   if (!original2_coarse) {
-    bool has_intersection =
-        !intersections2_coarse[0].empty() || !intersections2_coarse[1].empty();
-    EXPECT_TRUE(has_intersection)
+    EXPECT_FALSE(intersections2_coarse.empty())
         << "At least one composite segment should intersect when original "
            "curve has collision";
   }
 
   // Test parallel version gives same results
   auto intersections1_parallel = IntersectCompositeBezierCurveWithHPolyhedra(
-      composite_curve1, As, bs, empty_mask1, 1e-2, true);
+      composite_curve1, As, bs, empty_mask, 1e-2, true);
 
   EXPECT_EQ(intersections1_fine.size(), intersections1_parallel.size());
-  for (size_t i = 0; i < intersections1_fine.size(); ++i) {
+
+  // Check that both maps have the same keys and values
+  for (const auto& [seg_idx, obs_vec] : intersections1_fine) {
+    ASSERT_TRUE(intersections1_parallel.count(seg_idx))
+        << "Segment " << seg_idx << " missing in parallel results";
+
     // Sort both vectors since parallel execution might change order
-    std::vector<int> fine_sorted = intersections1_fine[i];
-    std::vector<int> parallel_sorted = intersections1_parallel[i];
+    std::vector<int> fine_sorted = obs_vec;
+    std::vector<int> parallel_sorted = intersections1_parallel.at(seg_idx);
     std::sort(fine_sorted.begin(), fine_sorted.end());
     std::sort(parallel_sorted.begin(), parallel_sorted.end());
 
     EXPECT_EQ(fine_sorted, parallel_sorted)
-        << "Segment " << i << " results differ between sequential and parallel";
+        << "Segment " << seg_idx
+        << " results differ between sequential and parallel";
+  }
+
+  // Also check no extra keys in parallel results
+  for (const auto& [seg_idx, _] : intersections1_parallel) {
+    EXPECT_TRUE(intersections1_fine.count(seg_idx))
+        << "Segment " << seg_idx << " should not be in parallel results";
   }
 }
 
@@ -742,8 +755,8 @@ GTEST_TEST(BezierCurveTest2, CompositeBezierSphereIntersectionCheck) {
       total_intersections += seg_intersections.size();
     }
 
-    std::cout << "\nSphere collision test (height = " << height << "):"
-              << std::endl;
+    std::cout << "\nSphere collision test (height = " << height
+              << "):" << std::endl;
     std::cout << "  Total intersections detected: " << total_intersections
               << std::endl;
     std::cout << "  Segment 0 intersects with spheres: ";
@@ -794,8 +807,8 @@ GTEST_TEST(BezierCurveTest2, CompositeBezierSphereIntersectionCheck) {
       total_intersections += seg_intersections.size();
     }
 
-    std::cout << "\nSphere collision test (height = " << height << "):"
-              << std::endl;
+    std::cout << "\nSphere collision test (height = " << height
+              << "):" << std::endl;
     std::cout << "  Total intersections detected: " << total_intersections
               << std::endl;
     std::cout << "  Segment 0 intersects with spheres: ";

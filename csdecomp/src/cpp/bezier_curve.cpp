@@ -533,7 +533,8 @@ uint8_t BezierCurveSphereCollisionFree(const BezierCurve& curve,
       if (diff.norm() > radius) {
         // At least one point is outside, need to subdivide
         // Fall through to subdivision logic
-        a = Eigen::VectorXd::Constant(center.size(), 1.0 / std::sqrt(center.size()));
+        a = Eigen::VectorXd::Constant(center.size(),
+                                      1.0 / std::sqrt(center.size()));
         a_norm = 1.0;
         break;
       }
@@ -602,11 +603,12 @@ uint8_t BezierCurveSphereCollisionFree(const BezierCurve& curve,
   return col_free1 && col_free2;
 }
 
-std::vector<std::vector<int>> IntersectCompositeBezierCurveWithHPolyhedra(
+std::unordered_map<int, std::vector<int>>
+IntersectCompositeBezierCurveWithHPolyhedra(
     const CompositeBezierCurve& c, const std::vector<Eigen::MatrixXd>& As,
     const std::vector<Eigen::VectorXd>& bs,
-    const std::vector<std::vector<int>>& hpoly_to_ignore, double tol,
-    bool parallelize) {
+    const std::unordered_map<int, std::vector<int>>& hpoly_to_ignore,
+    double tol, bool parallelize) {
   // Validate input dimensions
   if (As.size() != bs.size()) {
     throw std::invalid_argument("As and bs must have the same size");
@@ -615,23 +617,32 @@ std::vector<std::vector<int>> IntersectCompositeBezierCurveWithHPolyhedra(
   const size_t num_segments = c.num_segments();
   const size_t num_obstacles = As.size();
 
-  if (hpoly_to_ignore.size() != num_segments) {
-    throw std::invalid_argument(
-        "hpoly_to_ignore size must equal number of segments");
+  // Validate segment indices in hpoly_to_ignore
+  for (const auto& [seg_idx, _] : hpoly_to_ignore) {
+    if (seg_idx < 0 || seg_idx >= static_cast<int>(num_segments)) {
+      throw std::invalid_argument(
+          "hpoly_to_ignore contains invalid segment index: " +
+          std::to_string(seg_idx));
+    }
   }
 
-  // Initialize result vector
-  std::vector<std::vector<int>> intersections(num_segments);
+  // Initialize result map
+  std::unordered_map<int, std::vector<int>> intersections;
 
   if (parallelize) {
 #pragma omp parallel for schedule(dynamic)
     for (size_t seg_idx = 0; seg_idx < num_segments; ++seg_idx) {
       const BezierCurve& segment = c[seg_idx];
 
-      // Convert ignore list to unordered_set for O(1) lookup
-      std::unordered_set<int> ignore_set(hpoly_to_ignore[seg_idx].begin(),
-                                         hpoly_to_ignore[seg_idx].end());
+      // Get ignore list for this segment (empty if not in map)
+      std::unordered_set<int> ignore_set;
+      auto it = hpoly_to_ignore.find(static_cast<int>(seg_idx));
+      if (it != hpoly_to_ignore.end()) {
+        ignore_set =
+            std::unordered_set<int>(it->second.begin(), it->second.end());
+      }
 
+      std::vector<int> segment_intersections;
       for (size_t obs_idx = 0; obs_idx < num_obstacles; ++obs_idx) {
         // Skip this obstacle if it's in the ignore list for this segment
         if (ignore_set.find(static_cast<int>(obs_idx)) != ignore_set.end()) {
@@ -640,7 +651,16 @@ std::vector<std::vector<int>> IntersectCompositeBezierCurveWithHPolyhedra(
 
         if (!BezierCurveHPolyhedronCollisionFree(segment, As[obs_idx],
                                                  bs[obs_idx], tol)) {
-          intersections[seg_idx].push_back(static_cast<int>(obs_idx));
+          segment_intersections.push_back(static_cast<int>(obs_idx));
+        }
+      }
+
+      // Only add to result map if there are intersections
+      if (!segment_intersections.empty()) {
+#pragma omp critical
+        {
+          intersections[static_cast<int>(seg_idx)] =
+              std::move(segment_intersections);
         }
       }
     }
@@ -649,10 +669,15 @@ std::vector<std::vector<int>> IntersectCompositeBezierCurveWithHPolyhedra(
     for (size_t seg_idx = 0; seg_idx < num_segments; ++seg_idx) {
       const BezierCurve& segment = c[seg_idx];
 
-      // Convert ignore list to unordered_set for O(1) lookup
-      std::unordered_set<int> ignore_set(hpoly_to_ignore[seg_idx].begin(),
-                                         hpoly_to_ignore[seg_idx].end());
+      // Get ignore list for this segment (empty if not in map)
+      std::unordered_set<int> ignore_set;
+      auto it = hpoly_to_ignore.find(static_cast<int>(seg_idx));
+      if (it != hpoly_to_ignore.end()) {
+        ignore_set =
+            std::unordered_set<int>(it->second.begin(), it->second.end());
+      }
 
+      std::vector<int> segment_intersections;
       for (size_t obs_idx = 0; obs_idx < num_obstacles; ++obs_idx) {
         // Skip this obstacle if it's in the ignore list for this segment
         if (ignore_set.find(static_cast<int>(obs_idx)) != ignore_set.end()) {
@@ -661,8 +686,14 @@ std::vector<std::vector<int>> IntersectCompositeBezierCurveWithHPolyhedra(
 
         if (!BezierCurveHPolyhedronCollisionFree(segment, As[obs_idx],
                                                  bs[obs_idx], tol)) {
-          intersections[seg_idx].push_back(static_cast<int>(obs_idx));
+          segment_intersections.push_back(static_cast<int>(obs_idx));
         }
+      }
+
+      // Only add to result map if there are intersections
+      if (!segment_intersections.empty()) {
+        intersections[static_cast<int>(seg_idx)] =
+            std::move(segment_intersections);
       }
     }
   }
@@ -671,8 +702,7 @@ std::vector<std::vector<int>> IntersectCompositeBezierCurveWithHPolyhedra(
 }
 
 std::vector<std::vector<int>> IntersectCompositeBezierCurveWithSpheres(
-    const CompositeBezierCurve& c,
-    const std::vector<Eigen::VectorXd>& centers,
+    const CompositeBezierCurve& c, const std::vector<Eigen::VectorXd>& centers,
     const std::vector<double>& radii,
     const std::vector<std::vector<int>>& spheres_to_ignore, double tol,
     bool parallelize) {

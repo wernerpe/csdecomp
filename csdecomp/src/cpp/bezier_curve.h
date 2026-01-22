@@ -8,6 +8,7 @@
 #include <cmath>
 #include <memory>
 #include <stdexcept>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -434,20 +435,22 @@ uint8_t BezierCurveHPolyhedronCollisionFree(const BezierCurve& c,
  * has shape num_constraints_i x dimension)
  * @param bs Vector of constraint vectors, one for each H-polyhedron (each b_i
  * has shape num_constraints_i x 1)
- * @param hpoly_to_ignore Vector containing one vector per segment that
- * constains obstacle indices. If an index is present the corresponding obstacle
- * is not checked for collision.
+ * @param hpoly_to_ignore Map from segment indices to obstacle indices to ignore
+ * for that segment. If an obstacle index is present in the vector for a
+ * segment, that obstacle is not checked for collision with that segment.
  * @param tol Tolerance for collision detection algorithm (default: 1e-2)
  * @param parallelize Whether to use parallel processing over segments (default:
  * true)
  *
- * @return std::vector<std::vector<int>> A vector where result[i] contains the
- * indices of all H-polyhedrons that segment i intersects with. Empty vector for
- * segment i means segment i is collision-free with respect to all obstacles.
+ * @return std::unordered_map<int, std::vector<int>> A map where result[seg_idx]
+ * contains the indices of all H-polyhedrons that segment seg_idx intersects
+ * with. Segments with no collisions are not included in the map.
  *
  * @pre As.size() must equal bs.size()
  * @pre For each i: As[i].cols() must equal c.dimension()
  * @pre For each i: As[i].rows() must equal bs[i].size()
+ * @pre All keys in hpoly_to_ignore must be valid segment indices (<
+ * c.num_segments())
  * @pre tol must be positive
  *
  * @note An intersection is detected when BezierCurveHPolyhedronCollisionFree
@@ -455,11 +458,12 @@ uint8_t BezierCurveHPolyhedronCollisionFree(const BezierCurve& c,
  * @note Parallelizes over curve segments (recommended when num_obstacles >>
  * num_segments).
  */
-std::vector<std::vector<int>> IntersectCompositeBezierCurveWithHPolyhedra(
+std::unordered_map<int, std::vector<int>>
+IntersectCompositeBezierCurveWithHPolyhedra(
     const CompositeBezierCurve& c, const std::vector<Eigen::MatrixXd>& As,
     const std::vector<Eigen::VectorXd>& bs,
-    const std::vector<std::vector<int>>& hpoly_to_ignore, double tol = 1e-2,
-    bool parallelize = true);
+    const std::unordered_map<int, std::vector<int>>& hpoly_to_ignore,
+    double tol = 1e-2, bool parallelize = true);
 
 /**
  * @brief Check if a Bezier curve is collision-free with a sphere obstacle
@@ -530,8 +534,7 @@ uint8_t BezierCurveSphereCollisionFree(const BezierCurve& curve,
  * @note Parallelizes over curve segments.
  */
 std::vector<std::vector<int>> IntersectCompositeBezierCurveWithSpheres(
-    const CompositeBezierCurve& c,
-    const std::vector<Eigen::VectorXd>& centers,
+    const CompositeBezierCurve& c, const std::vector<Eigen::VectorXd>& centers,
     const std::vector<double>& radii,
     const std::vector<std::vector<int>>& spheres_to_ignore, double tol = 1e-2,
     bool parallelize = true);
