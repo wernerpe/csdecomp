@@ -23,14 +23,21 @@ jobs:
           DEBIAN_FRONTEND=noninteractive apt-get install -y \
             git curl wget python3 python3-pip python3-dev \
             clang clang-format-15 libcairo2-dev libgirepository1.0-dev \
-            patchelf
-          # Install bazelisk
+            patchelf sudo
           wget -q https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64 \
             -O /usr/local/bin/bazel
           chmod +x /usr/local/bin/bazel
 
+      - name: Create non-root user
+        run: |
+          useradd -m builder
+          echo "builder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Fix permissions
+        run: chown -R builder:builder .
 
       - name: Configure Python version for Bazel
         run: |
@@ -51,9 +58,10 @@ jobs:
               return copts
           BZLEOF
           sed -i "s/python_version = \"3\.[0-9]*\"/python_version = \"${{ matrix.python_version }}\"/g" MODULE.bazel
+          chown builder:builder tools/my_python_version.bzl MODULE.bazel
 
       - name: Build wheel
-        run: bazel build //csdecomp/src/pybind/csdecomp:csdecomp_wheel
+        run: sudo -u builder bazel build //csdecomp/src/pybind/csdecomp:csdecomp_wheel
 
       - name: Repair wheel with auditwheel
         run: |
