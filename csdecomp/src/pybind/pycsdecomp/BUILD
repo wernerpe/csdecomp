@@ -11,9 +11,10 @@ cc_library(
     name = "voxel_wrapper",
     srcs = ["voxel_wrapper.h"],
     hdrs = ["voxel_wrapper.h"],
+    copts = ["-Icsdecomp/src"],
     visibility = ["//visibility:public"],
     deps = [
-        "//csdecomp/src/cpp:collision_geometry",
+        "//csdecomp/src/plant:collision_geometry",
     ],
 )
 
@@ -21,11 +22,11 @@ cc_library(
     name = "plant_bindings",
     srcs = ["plant_bindings.h"],
     hdrs = ["plant_bindings.h"],
-    copts = ["-Icsdecomp/src/cpp"],
+    copts = ["-Icsdecomp/src"],
     visibility = ["//visibility:public"],
     deps = [
         ":voxel_wrapper",
-        "//csdecomp/src/cpp:urdf_parser",
+        "//csdecomp/src/plant:urdf_parser",
     ],
 )
 
@@ -33,11 +34,11 @@ cc_library(
     name = "collision_checker_bindings",
     srcs = ["collision_checker_bindings.h"],
     hdrs = ["collision_checker_bindings.h"],
-    copts = ["-Icsdecomp/src/cpp"],
+    copts = ["-Icsdecomp/src"],
     visibility = ["//visibility:public"],
     deps = [
         ":voxel_wrapper",
-        "//csdecomp/src/cpp:collision_checker",
+        "//csdecomp/src/plant:collision_checker",
     ],
 )
 
@@ -45,13 +46,13 @@ cc_library(
     name = "cpp_utils_bindings",
     srcs = ["cpp_utils_bindings.h"],
     hdrs = ["cpp_utils_bindings.h"],
-    copts = ["-Icsdecomp/src/cpp"],
+    copts = ["-Icsdecomp/src"],
     visibility = ["//visibility:public"],
     deps = [
         ":voxel_wrapper",
-        "//csdecomp/src/cpp:bezier_curve",
-        "//csdecomp/src/cpp:distance_aabb_linesegment",
-        "//csdecomp/src/cpp:linesegment_aabb_checker",
+        "//csdecomp/src/geometry:distance_aabb_linesegment",
+        "//csdecomp/src/geometry:linesegment_aabb_checker",
+        "//csdecomp/src/planning:bezier_curve",
     ],
 )
 
@@ -59,10 +60,10 @@ cc_library(
     name = "hpolyhedron_bindings",
     srcs = ["hpolyhedron_bindings.h"],
     hdrs = ["hpolyhedron_bindings.h"],
-    copts = ["-Icsdecomp/src/cpp"],
+    copts = ["-Icsdecomp/src"],
     visibility = ["//visibility:public"],
     deps = [
-        "//csdecomp/src/cpp:hpolyhedron",
+        "//csdecomp/src/geometry:hpolyhedron",
     ],
 )
 
@@ -70,15 +71,14 @@ cc_library(
     name = "cuda_bindings",
     srcs = ["cuda_bindings.h"],
     hdrs = ["cuda_bindings.h"],
-    copts = [
-        "-Icsdecomp/src/cpp",
-        "-Icsdecomp/src/cuda",
-    ],
+    copts = ["-Icsdecomp/src"],
     visibility = ["//visibility:public"],
     deps = [
-        "//csdecomp/src/cuda:cuda_edit_regions",
-        "//csdecomp/src/cuda:cuda_polytope_builder",
-        "//csdecomp/src/cuda:cuda_visibility_graph",
+        "//csdecomp/src/geometry:cuda_hit_and_run_sampling",
+        "//csdecomp/src/planning:cuda_edit_regions",
+        "//csdecomp/src/planning:cuda_polytope_builder",
+        "//csdecomp/src/planning:cuda_visibility_graph",
+        "//csdecomp/src/plant:cuda_collision_checker",
     ],
 )
 
@@ -86,22 +86,17 @@ cc_library(
     name = "drm_bindings",
     srcs = ["drm_bindings.h"],
     hdrs = ["drm_bindings.h"],
-    copts = [
-        "-Icsdecomp/src/cpp",
-        "-Icsdecomp/src/cuda",
-    ],
+    copts = ["-Icsdecomp/src"],
     visibility = ["//visibility:public"],
     deps = [
-        "//csdecomp/src/cpp:drm_planner",
+        "//csdecomp/src/planning:drm_planner",
     ],
 )
 
 pybind_extension(
     name = "pycsdecomp_bindings",
     srcs = ["pycsdecomp_bindings.cpp"],
-    copts = [
-        "-Icsdecomp/src/cuda",
-    ],
+    copts = ["-Icsdecomp/src"],
     visibility = ["//visibility:public"],
     deps = [
         ":collision_checker_bindings",

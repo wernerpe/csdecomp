@@ -15,7 +15,7 @@ cc_library(
     includes = ["."],
     visibility = ["//visibility:public"],
     deps = [
-        "//csdecomp/src/cpp:hpolyhedron",
+        "//csdecomp/src/geometry:hpolyhedron",
         "//csdecomp/third_party:matplotlib_cpp",
         "@eigen",
     ],
@@ -28,7 +28,7 @@ cc_library(
     includes = ["."],
     visibility = ["//visibility:public"],
     deps = [
-        "//csdecomp/src/cpp:hpolyhedron",
+        "//csdecomp/src/geometry:hpolyhedron",
         "//csdecomp/third_party:matplotlib_cpp_interactive",
         "@eigen",
     ],

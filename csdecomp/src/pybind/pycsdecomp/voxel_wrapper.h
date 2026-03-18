@@ -1,5 +1,5 @@
 #pragma once
-#include "collision_geometry.h"
+#include "plant/collision_geometry.h"
 using namespace csdecomp;
 namespace {
 class VoxelsWrapper {

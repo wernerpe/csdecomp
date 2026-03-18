@@ -4,9 +4,9 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "bezier_curve.h"
-#include "distance_aabb_linesegment.h"
-#include "linesegment_aabb_checker.h"
+#include "geometry/distance_aabb_linesegment.h"
+#include "geometry/linesegment_aabb_checker.h"
+#include "planning/bezier_curve.h"
 
 namespace py = pybind11;
 using namespace csdecomp;

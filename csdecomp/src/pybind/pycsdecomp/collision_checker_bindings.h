@@ -4,7 +4,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "collision_checker.h"
+#include "plant/collision_checker.h"
 #include "voxel_wrapper.h"
 
 namespace py = pybind11;

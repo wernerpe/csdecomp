@@ -1,3 +1,4 @@
+_plan/
 bazel-*
 MODULE.bazel.*
 *.pyc

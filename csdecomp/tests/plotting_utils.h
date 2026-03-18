@@ -6,7 +6,7 @@
 #include <map>
 #include <vector>
 
-#include "hpolyhedron.h"
+#include "geometry/hpolyhedron.h"
 
 using namespace csdecomp;
 

@@ -4,7 +4,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "urdf_parser.h"
+#include "plant/urdf_parser.h"
 #include "voxel_wrapper.h"
 
 namespace py = pybind11;

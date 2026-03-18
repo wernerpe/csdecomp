@@ -4,11 +4,11 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "cuda_collision_checker.h"
-#include "cuda_edit_regions.h"
-#include "cuda_hit_and_run_sampling.h"
-#include "cuda_polytope_builder.h"
-#include "cuda_visibility_graph.h"
+#include "geometry/cuda_hit_and_run_sampling.h"
+#include "planning/cuda_edit_regions.h"
+#include "planning/cuda_polytope_builder.h"
+#include "planning/cuda_visibility_graph.h"
+#include "plant/cuda_collision_checker.h"
 #include "voxel_wrapper.h"
 
 namespace py = pybind11;

@@ -4,7 +4,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "drm_planner.h"
+#include "planning/drm_planner.h"
 #include "voxel_wrapper.h"
 
 namespace py = pybind11;
