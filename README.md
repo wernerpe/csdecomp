@@ -4,46 +4,47 @@ CSDecomp is a Python package that implements a simple GPU-accelerated collision 
 
 Contributions are welcome!
 ## Installation
-Currently, the installation requires building from source using bazel. I have only tested the software using python 3.10 and building on Ubuntu22.04.
 
-1. Install the cuda toolchain. I used cuda 12.6 and the 560 driver:
+### From PyPI (recommended)
 
-    `https://developer.nvidia.com/cuda-toolkit-archive`
+```bash
+pip install csdecomp
+```
 
-    (Note: You will need to make sure that your display driver is compatible with the cuda version installed. Otherwise the code might compile but all of the kernel launches will do nothing.)
+Requires an NVIDIA GPU with a compatible driver. The wheel bundles the CUDA runtime.
+
+### From source
+
+1. Install the CUDA toolchain (12.x recommended): https://developer.nvidia.com/cuda-toolkit-archive
+
+    (Your display driver must be compatible with the installed CUDA version.)
 
 2. Install prereqs:
-    
-    Install bazel via bazelisk: 
+
+    Install bazel via bazelisk:
     [bazelisk instructions](https://github.com/bazelbuild/bazelisk/blob/master/README.md)
-    
-    Other prereqs via:
+
+    Other prereqs:
     `sudo bash setup.sh`
 
-4. Build and test the code to ensure that everything was installed correctly:
-    
-    From the root of this repository run `bazel test ...`
+3. Build and test:
+
+    `bazel test //...`
 
     (If you are getting cudaMalloc errors, make sure there aren't any big applications running in the background.)
 
-Notes: 
+### Usage
 
-The build outputs a pip installable wheel at `bazel-bin/csdecomp/src/pybind/pycsdecomp` and a directory named `pycsdecomp` that can be appended to the python path and used directly like so:
-
+```python
+import csdecomp as csd
 ```
-import sys
-sys.path.append(f'{PATH_TO_REPO}/bazel-bin/csdecomp/src/pybind/pycsdecomp')
-import pycsdecomp as csd
-```
-The wheel and this folder contain a pystubs file for type hints. Make sure to point to those directories to simplfy code usage. 
 
+The build also outputs a pip-installable wheel at `bazel-bin/csdecomp/src/pybind/csdecomp/`.
 
-If you want to try to change python version, it will need to be changed here:
-1. https://github.com/wernerpe/cuciv0/blob/feature/drake_compat_layer/tools/my_python_version.bzl#L2-L5
-2. https://github.com/wernerpe/cuciv0/blob/feature/drake_compat_layer/MODULE.bazel#L15
+To change Python version, edit `tools/my_python_version.bzl` and `MODULE.bazel`.
 
-In general, the unit tests demonstrate how the code should be used. The python bindings closely follow the C++ syntax.
-There is an experimental documentation that can be built with doxygen `cd csdecomp/docs/ && doxygen Doxyfile`.
+The unit tests demonstrate how the code should be used. The Python bindings closely follow the C++ syntax.
+There is experimental documentation that can be built with doxygen: `cd csdecomp/docs/ && doxygen Doxyfile`.
 
 # Running the Python Examples
 
@@ -87,13 +88,13 @@ Random build command lookuptable
 
 `bazel build //...`
 
-`bazel build //csdecomp/pybind:pycsdecompbindings`
+`bazel build //csdecomp/src/pybind/csdecomp:csdecomp_wheel`
 
-`bazel test //csdecomp/tests:urdf_parser_test`
+`bazel test //csdecomp/tests:csdecomp_test`
 
 Using a bashrc approach for adding csdecomp to the python path
 
-`export PYTHONPATH=$(bazel info bazel-bin)/csdecomp/src/pybind:$PYTHONPATH`
+`export PYTHONPATH=$(bazel info bazel-bin)/csdecomp/src/pybind/csdecomp:$PYTHONPATH`
 
 Random profilig commands:
 

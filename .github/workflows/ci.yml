@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main, pypi]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-lint:
+    runs-on: ubuntu-latest
+    container:
+      image: nvidia/cuda:12.6.3-devel-ubuntu22.04
+    steps:
+      - name: Install system dependencies
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            git curl wget python3 python3-pip python3-dev \
+            clang clang-format-15 libcairo2-dev libgirepository1.0-dev
+          wget -q https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64 \
+            -O /usr/local/bin/bazel
+          chmod +x /usr/local/bin/bazel
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build all targets
+        run: bazel build //...
+
+      # GPU tests cannot run on standard CI runners.
+      # Run lint and format tests only (these don't need a GPU).
+      - name: Run lint and format tests
+        run: |
+          bazel test \
+            //csdecomp/src/geometry:buildifier_test \
+            //csdecomp/src/geometry:cpp_lint_test \
+            //csdecomp/src/geometry/tests:buildifier_test \
+            //csdecomp/src/geometry/tests:cpp_lint_test \
+            //csdecomp/src/planning:buildifier_test \
+            //csdecomp/src/planning:cpp_lint_test \
+            //csdecomp/src/planning/tests:buildifier_test \
+            //csdecomp/src/planning/tests:cpp_lint_test \
+            //csdecomp/src/plant:buildifier_test \
+            //csdecomp/src/plant:cpp_lint_test \
+            //csdecomp/src/plant/tests:buildifier_test \
+            //csdecomp/src/plant/tests:cpp_lint_test \
+            //csdecomp/src/pybind/csdecomp:buildifier_test \
+            //csdecomp/src/pybind/csdecomp:cpp_lint_test \
+            //csdecomp/src/utils:buildifier_test \
+            //csdecomp/src/utils:cpp_lint_test \
+            //csdecomp/tests:buildifier_test \
+            //csdecomp/tests:cpp_lint_test

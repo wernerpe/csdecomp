@@ -35,14 +35,14 @@ cc_library(
 )
 
 py_test(
-    name = "pycsdecomp_test",
-    srcs = ["pycsdecomp_test.py"],
+    name = "csdecomp_test",
+    srcs = ["csdecomp_test.py"],
     data = [
         "//csdecomp/tests/test_assets:directives",
         "//csdecomp/tests/test_assets:urdf_files",
     ],
     deps = [
-        "//csdecomp/src/pybind/pycsdecomp:pycsdecomp_lib_internal",
+        "//csdecomp/src/pybind/csdecomp:csdecomp_lib_internal",
         requirement("drake"),
         requirement("scipy"),
     ],

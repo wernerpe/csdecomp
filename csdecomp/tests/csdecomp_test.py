@@ -1,5 +1,5 @@
 import unittest
-import pycsdecomp as csd
+import csdecomp as csd
 import numpy as np
 import sys
 

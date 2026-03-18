@@ -6,7 +6,7 @@ from pydrake.all import (MultibodyPlant,
                          Sphere,
                          Context)
 from typing import Union
-import pycsdecomp as csd
+from . import pycsdecomp_bindings as csd
 import numpy as np
 from scipy.spatial.transform import Rotation
 

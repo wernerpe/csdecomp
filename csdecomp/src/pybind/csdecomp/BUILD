@@ -128,39 +128,39 @@ genrule(
         "drake_csd_bridge.py",
     ],
     outs = [
-        "pycsdecomp/__init__.py",
-        "pycsdecomp/py.typed",
-        "pycsdecomp/drake_csd_bridge.py",
-        "pycsdecomp/pycsdecomp_bindings.so",
-        "pycsdecomp/pycsdecomp_bindings.pyi",
+        "csdecomp/__init__.py",
+        "csdecomp/py.typed",
+        "csdecomp/drake_csd_bridge.py",
+        "csdecomp/pycsdecomp_bindings.so",
+        "csdecomp/pycsdecomp_bindings.pyi",
     ],
     cmd = """
         # Create directory
-        mkdir -p $(RULEDIR)/pycsdecomp
+        mkdir -p $(RULEDIR)/csdecomp
 
         # Copy required files
         cp $(location __init__.py) $(location py.typed) \
            $(location drake_csd_bridge.py) \
-           $(location :pycsdecomp_bindings) $(RULEDIR)/pycsdecomp/
+           $(location :pycsdecomp_bindings) $(RULEDIR)/csdecomp/
 
         # Run stub generation with Bazel's Python
         # Set RUNFILES_MANIFEST_FILE so the py_binary wrapper can find its dependencies
         export RUNFILES_MANIFEST_FILE="$$(echo $(locations :generate_stubs) | cut -d' ' -f1).runfiles_manifest"
         STUBS_SCRIPT="$$(echo $(locations :generate_stubs) | cut -d' ' -f1)"
-        $$STUBS_SCRIPT $(RULEDIR)/pycsdecomp
+        $$STUBS_SCRIPT $(RULEDIR)/csdecomp
     """,
     tools = [":generate_stubs"],
 )
 
 py_library(
-    name = "pycsdecomp_lib",
+    name = "csdecomp_lib",
     data = [":copy_init_and_generate_stubs"],
     imports = [".."],
     visibility = ["//visibility:public"],
 )
 
 py_library(
-    name = "pycsdecomp_lib_internal",
+    name = "csdecomp_lib_internal",
     srcs = [
         "__init__.py",
         "drake_csd_bridge.py",
@@ -174,26 +174,25 @@ py_library(
 )
 
 py_package(
-    name = "pycsdecomp_package",
-    deps = [":pycsdecomp_lib"],
+    name = "csdecomp_package",
+    deps = [":csdecomp_lib"],
 )
 
 py_wheel(
-    name = "pycsdecomp_wheel",
-    distribution = "pycsdecomp",
+    name = "csdecomp_wheel",
+    distribution = "csdecomp",
     platform = select({
-        "@platforms//os:linux": "manylinux2014_x86_64",
+        "@platforms//os:linux": "manylinux_2_28_x86_64",
     }),
     python_tag = get_my_python_tag(),
     requires = [
-        "setuptools",
         "numpy>=2.0.0",
     ],
     strip_path_prefixes = [
-        "csdecomp/src/pybind/pycsdecomp",  # Adjust this path to match your project structure
+        "csdecomp/src/pybind/csdecomp",
     ],
-    version = "0.1",
+    version = "0.1.0",
     deps = [
-        ":pycsdecomp_package",
+        ":csdecomp_package",
     ],
 )
