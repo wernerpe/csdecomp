@@ -60,12 +60,11 @@ E.g. `poetry shell && python minimal_test.py`
 
 # Developing
 
-I added the .vscode runfiles for interactive debugging the cpp code using vscode. In order to use the plotting together with gdb, the targets currently need to depend on the system python. To use this, make sure that your system python has a version of matplotlib installed along with the dev headers. 
-This can be checked via
+For interactive debugging of C++ code with plotting, the targets need to depend on the system python. Make sure your system python has matplotlib installed along with the dev headers:
 
     `test -f /usr/include/python3.10/Python.h && echo "exists" || echo "not found"`
 
-An example creating such a target is in `csdecomp/src/cuda/tests/BUILD`.
+The `cc_test_with_system_python` targets (tagged `manual`) in the test BUILD files demonstrate this setup.
 
 
 
@@ -83,7 +82,6 @@ If you find this code useful, please consider citing our paper:
 ```
 
 # Miscellaneous
-We developped the code using vscode. For convenience, I added the ".vscode" folder that shows how to launch the cpp unit tests interactively for debugging.
 
 Random build command lookuptable
 
