@@ -1,3 +1,4 @@
+_plan/
 bazel-*
 MODULE.bazel.*
 *.pyc
@@ -13,5 +14,6 @@ build/*
 *.nsys*
 *.venv
 *poetry.lock
+*uv.lock
 examples/tmp/*
 *doxyoutput*

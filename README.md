@@ -1,74 +1,101 @@
 # CSDecomp: Configuration Space Decomposition Toolbox
 
+![CSDecomp Overview](docs/csdecomp_overview.png)
+
 CSDecomp is a Python package that implements a simple GPU-accelerated collision checker and GPU-accelerated algorithms for computing approximate convex decompositions of robot configuration spaces. The package provides implementations of Dynamic Roadmaps (DRMs) and the Edge Inflation Zero-Order (EI-ZO) algorithm in cuda/cpp as described in our paper ["Superfast Configuration-Space Convex Set Computation on GPUs for Online Motion Planning"](https://arxiv.org/pdf/2504.10783).
+
+Since the publication I have continued adding useful functionality to this codebase for motion planning and have made it pip installable.
 
 Contributions are welcome!
 ## Installation
-Currently, the installation requires building from source using bazel. I have only tested the software using python 3.10 and building on Ubuntu22.04.
 
-1. Install the cuda toolchain. I used cuda 12.6 and the 560 driver:
+### From PyPI (recommended)
 
-    `https://developer.nvidia.com/cuda-toolkit-archive`
+```bash
+pip install csdecomp
+```
 
-    (Note: You will need to make sure that your display driver is compatible with the cuda version installed. Otherwise the code might compile but all of the kernel launches will do nothing.)
+Requires an NVIDIA GPU with a compatible driver. The wheel bundles the CUDA runtime.
+
+### From source
+
+1. Install the CUDA toolchain (12.x recommended): https://developer.nvidia.com/cuda-toolkit-archive
+
+    (Your display driver must be compatible with the installed CUDA version.)
 
 2. Install prereqs:
-    
-    Install bazel via bazelisk: 
+
+    Install bazel via bazelisk:
     [bazelisk instructions](https://github.com/bazelbuild/bazelisk/blob/master/README.md)
-    
-    Other prereqs via:
+
+    Other prereqs:
     `sudo bash setup.sh`
 
-4. Build and test the code to ensure that everything was installed correctly:
-    
-    From the root of this repository run `bazel test ...`
+3. Build and test:
+
+    `bazel test //...`
 
     (If you are getting cudaMalloc errors, make sure there aren't any big applications running in the background.)
 
-Notes: 
+### Usage
 
-The build outputs a pip installable wheel at `bazel-bin/csdecomp/src/pybind/pycsdecomp` and a directory named `pycsdecomp` that can be appended to the python path and used directly like so:
-
+```python
+import csdecomp as csd
 ```
-import sys
-sys.path.append(f'{PATH_TO_REPO}/bazel-bin/csdecomp/src/pybind/pycsdecomp')
-import pycsdecomp as csd
+
+The build also outputs a pip-installable wheel at `bazel-bin/csdecomp/src/pybind/csdecomp/`.
+
+To change Python version, edit `tools/my_python_version.bzl` and `MODULE.bazel`.
+
+The unit tests demonstrate how the code should be used. The Python bindings closely follow the C++ syntax.
+There is experimental documentation that can be built with doxygen: `cd csdecomp/docs/ && doxygen Doxyfile`.
+
+## Running the Examples
+
+The examples require [uv](https://docs.astral.sh/uv/getting-started/installation/) for environment management.
+
+### As a user (using the PyPI package)
+
+```bash
+cd examples
+uv sync
+uv pip install csdecomp
+uv run python minimal_test.py
 ```
-The wheel and this folder contain a pystubs file for type hints. Make sure to point to those directories to simplfy code usage. 
 
+For notebooks:
+```bash
+uv run jupyter notebook
+```
+Select the `.venv` kernel in your editor.
 
-If you want to try to change python version, it will need to be changed here:
-1. https://github.com/wernerpe/cuciv0/blob/feature/drake_compat_layer/tools/my_python_version.bzl#L2-L5
-2. https://github.com/wernerpe/cuciv0/blob/feature/drake_compat_layer/MODULE.bazel#L15
+### As a developer (using a locally built wheel)
 
-In general, the unit tests demonstrate how the code should be used. The python bindings closely follow the C++ syntax.
-There is an experimental documentation that can be built with doxygen `cd csdecomp/docs/ && doxygen Doxyfile`.
+```bash
+cd examples
+bash dev_install.sh          # builds wheel from source and installs it
+uv run python minimal_test.py
+uv run python test_eizo.py
+uv run python test_drake_bridge.py
+```
 
-# Running the Python Examples
+The example tests are also Bazel targets, so `bazel test //...` runs them alongside all other tests.
 
-1. Install poetry `pip install poetry` 
+For notebooks, select the `.venv` kernel in your editor.
 
-2. `cd examples && poetry install`
+## Developing
 
-3. Run the exapmles! 
-E.g. activate the environment via the command given with `poetry env activate` then run
-     `python minimal_test.py`
+Run the full test suite (requires GPU):
 
-    For the notebooks make sure to select the kernel corresponding to the venv created by poetry. If you are using vscode, you may need to open the examples folder speparately, e.g. `cd examples && code .`, for it to detect and list the kernel automatically.
+```bash
+bazel test //...
+```
 
-# Developing
+CI runs lint and build checks only (no GPU required). Developers with a GPU should run the full suite locally before pushing.
 
-I added the .vscode runfiles for interactive debugging the cpp code using vscode. In order to use the plotting together with gdb, the targets currently need to depend on the system python. To use this, make sure that your system python has a version of matplotlib installed along with the dev headers. 
-This can be checked via
+For interactive debugging of C++ code with plotting, use the `cc_test_with_system_python` targets (tagged `manual`) in the test BUILD files. These require system Python with matplotlib and dev headers installed.
 
-    `test -f /usr/include/python3.10/Python.h && echo "exists" || echo "not found"`
-
-An example creating such a target is in `csdecomp/src/cuda/tests/BUILD`.
-
-
-
-# Citation
+## Citation
 
 If you find this code useful, please consider citing our paper:
 
@@ -81,34 +108,16 @@ If you find this code useful, please consider citing our paper:
 }
 ```
 
-# Miscellaneous
-We developped the code using vscode. For convenience, I added the ".vscode" folder that shows how to launch the cpp unit tests interactively for debugging.
+## Useful Commands
 
-Random build command lookuptable
+```bash
+bazel build //...                                              # build everything
+bazel build //csdecomp/src/pybind/csdecomp:csdecomp_wheel      # build pip wheel
+bazel test //...                                               # run all tests (requires GPU)
+bazel test //csdecomp/tests:csdecomp_test                      # run Python integration test
+```
 
-`bazel build //...`
-
-`bazel build //csdecomp/pybind:pycsdecompbindings`
-
-`bazel test //csdecomp/tests:urdf_parser_test`
-
-Using a bashrc approach for adding csdecomp to the python path
-
-`export PYTHONPATH=$(bazel info bazel-bin)/csdecomp/src/pybind:$PYTHONPATH`
-
-Random profilig commands:
-
-`nsys profile bazel-bin/csdecomp/tests/cuda_collision_checker_test`
-
-`sudo $(which ncu) --set full --target-processes all -o tmp/nsightcompute_report bazel-bin/csdecomp/tests/cuda_collision_checker_test`
-
-Drake slow to launch and returning LCM test failed:
-
-```sudo ifconfig lo multicast & sudo route add -net 224.0.0.0 netmask 240.0.0.0 dev lo ```
-
-
-Running list of TODOs
-* Improve forward kinematics efficiency by removing fixed joints from the evaluation and switching to 3x4 representation of the transforms
-* Handle other python versions gracefully
-* Handle cylinder and capsule collision geometries
-* Finish Python documentation using Sphinx
+If Drake is slow to launch (LCM error):
+```bash
+sudo ifconfig lo multicast && sudo route add -net 224.0.0.0 netmask 240.0.0.0 dev lo
+```

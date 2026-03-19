@@ -1,0 +1,76 @@
+name: Build Wheels
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-wheel:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python_version: ["3.10", "3.11", "3.12"]
+    container:
+      image: quay.io/pypa/manylinux_2_28_x86_64
+    steps:
+      - name: Install CUDA toolkit
+        run: |
+          dnf install -y 'dnf-command(config-manager)'
+          dnf config-manager --add-repo \
+            https://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo
+          dnf install -y cuda-toolkit-12-6 cuda-cudart-devel-12-6
+
+      - name: Install system dependencies
+        run: |
+          dnf install -y clang clang-tools-extra wget git patchelf sudo python3-pip
+          wget -q https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64 \
+            -O /usr/local/bin/bazel
+          chmod +x /usr/local/bin/bazel
+          # Bazel expects gcc-12/g++-12; manylinux has gcc at /usr/bin/gcc
+          ln -sf /usr/bin/gcc /usr/bin/gcc-12
+          ln -sf /usr/bin/g++ /usr/bin/g++-12
+
+      - name: Create non-root user
+        run: |
+          useradd -m builder
+          echo "builder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Python version and fix permissions
+        run: |
+          PY_VERSION="${{ matrix.python_version }}"
+          PY_TAG="cp$(echo "$PY_VERSION" | tr -d '.')"
+          sed -i "s/return \"3\.[0-9]*\"/return \"${PY_VERSION}\"/" tools/my_python_version.bzl
+          sed -i "s/return \"cp3[0-9]*\"/return \"${PY_TAG}\"/" tools/my_python_version.bzl
+          cat tools/my_python_version.bzl
+          sed -i "s/python_version = \"3\.[0-9]*\"/python_version = \"${PY_VERSION}\"/g" MODULE.bazel
+          chown -R builder:builder .
+
+      - name: Build wheel
+        run: |
+          sudo -u builder env PATH="/usr/local/cuda-12.6/bin:$PATH" \
+            bazel build //csdecomp/src/pybind/csdecomp:csdecomp_wheel
+
+      - name: Repair wheel with auditwheel
+        run: |
+          python3 -m pip install auditwheel
+          WHEEL=$(find bazel-bin/csdecomp/src/pybind/csdecomp -name "*.whl" | head -1)
+          echo "Found wheel: ${WHEEL}"
+          auditwheel show "${WHEEL}"
+          auditwheel repair \
+            --exclude libcuda.so.1 \
+            --plat manylinux_2_28_x86_64 \
+            "${WHEEL}" \
+            -w dist/
+          ls -la dist/
+
+      - name: Upload wheel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheel-py${{ matrix.python_version }}
+          path: dist/*.whl

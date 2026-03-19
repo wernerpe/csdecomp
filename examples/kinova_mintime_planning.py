@@ -13,7 +13,7 @@ from pydrake.all import (
     RigidTransform
 )
 from cspace_utils.plotting import plot_points, plot_triad
-import pycsdecomp as csd
+import csdecomp as csd
 import numpy as np
 import time
 from planning_utils import MintimeSCSWithPathFixing, CollisionChecker, RegionCorrector, CSD_inflate_edges_given_pwl_path
