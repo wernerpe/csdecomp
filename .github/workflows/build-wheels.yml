@@ -43,23 +43,12 @@ jobs:
 
       - name: Configure Python version and fix permissions
         run: |
-          PY_TAG="cp$(echo '${{ matrix.python_version }}' | tr -d '.')"
-          cat > tools/my_python_version.bzl << BZLEOF
-          def get_my_python_version():
-              return "${{ matrix.python_version }}"
-
-          def get_my_python_tag():
-              return "${PY_TAG}"
-
-          def get_my_system_python_copts():
-              copts = [
-                  "-DCPP_PYVENV_LAUNCHER=\\\"/usr/bin/python{}\\\"".format(get_my_python_version()),
-                  "-DCPP_PYTHON_HOME=\\\"/usr\\\"",
-                  "-DCPP_PYTHON_PATH=\\\"/usr/lib/python{}/\\\"".format(get_my_python_version()),
-              ]
-              return copts
-          BZLEOF
-          sed -i "s/python_version = \"3\.[0-9]*\"/python_version = \"${{ matrix.python_version }}\"/g" MODULE.bazel
+          PY_VERSION="${{ matrix.python_version }}"
+          PY_TAG="cp$(echo "$PY_VERSION" | tr -d '.')"
+          sed -i "s/return \"3\.[0-9]*\"/return \"${PY_VERSION}\"/" tools/my_python_version.bzl
+          sed -i "s/return \"cp3[0-9]*\"/return \"${PY_TAG}\"/" tools/my_python_version.bzl
+          cat tools/my_python_version.bzl
+          sed -i "s/python_version = \"3\.[0-9]*\"/python_version = \"${PY_VERSION}\"/g" MODULE.bazel
           chown -R builder:builder .
 
       - name: Build wheel
