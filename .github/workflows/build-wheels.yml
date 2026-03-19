@@ -12,21 +12,26 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cuda_version: ["12.6.3"]
         python_version: ["3.10", "3.11", "3.12"]
     container:
-      image: nvidia/cuda:${{ matrix.cuda_version }}-devel-ubuntu22.04
+      image: quay.io/pypa/manylinux_2_28_x86_64
     steps:
+      - name: Install CUDA toolkit
+        run: |
+          dnf install -y 'dnf-command(config-manager)'
+          dnf config-manager --add-repo \
+            https://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo
+          dnf install -y cuda-toolkit-12-6 cuda-cudart-devel-12-6
+
       - name: Install system dependencies
         run: |
-          apt-get update
-          DEBIAN_FRONTEND=noninteractive apt-get install -y \
-            git curl wget python3 python3-pip python3-dev \
-            clang clang-format-15 libcairo2-dev libgirepository1.0-dev \
-            patchelf sudo gcc-12 g++-12
+          dnf install -y clang clang-tools-extra wget git patchelf sudo
           wget -q https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64 \
             -O /usr/local/bin/bazel
           chmod +x /usr/local/bin/bazel
+          # Bazel expects gcc-12/g++-12; manylinux has gcc at /usr/bin/gcc
+          ln -sf /usr/bin/gcc /usr/bin/gcc-12
+          ln -sf /usr/bin/g++ /usr/bin/g++-12
 
       - name: Create non-root user
         run: |
@@ -36,10 +41,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Fix permissions
-        run: chown -R builder:builder .
-
-      - name: Configure Python version for Bazel
+      - name: Configure Python version and fix permissions
         run: |
           PY_TAG="cp$(echo '${{ matrix.python_version }}' | tr -d '.')"
           cat > tools/my_python_version.bzl << BZLEOF
@@ -58,16 +60,19 @@ jobs:
               return copts
           BZLEOF
           sed -i "s/python_version = \"3\.[0-9]*\"/python_version = \"${{ matrix.python_version }}\"/g" MODULE.bazel
-          chown builder:builder tools/my_python_version.bzl MODULE.bazel
+          chown -R builder:builder .
 
       - name: Build wheel
-        run: sudo -u builder bazel build //csdecomp/src/pybind/csdecomp:csdecomp_wheel
+        run: |
+          sudo -u builder env PATH="/usr/local/cuda-12.6/bin:$PATH" \
+            bazel build //csdecomp/src/pybind/csdecomp:csdecomp_wheel
 
       - name: Repair wheel with auditwheel
         run: |
           pip3 install auditwheel
           WHEEL=$(find bazel-bin/csdecomp/src/pybind/csdecomp -name "*.whl" | head -1)
           echo "Found wheel: ${WHEEL}"
+          auditwheel show "${WHEEL}"
           auditwheel repair \
             --exclude libcuda.so.1 \
             --plat manylinux_2_28_x86_64 \
@@ -78,5 +83,5 @@ jobs:
       - name: Upload wheel artifact
         uses: actions/upload-artifact@v4
         with:
-          name: wheel-cuda${{ matrix.cuda_version }}-py${{ matrix.python_version }}
+          name: wheel-py${{ matrix.python_version }}
           path: dist/*.whl

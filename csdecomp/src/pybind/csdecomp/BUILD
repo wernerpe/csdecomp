@@ -124,7 +124,6 @@ genrule(
         "__init__.py",
         "py.typed",
         ":pycsdecomp_bindings",
-        ":generate_stubs",
         "drake_csd_bridge.py",
     ],
     outs = [
@@ -143,11 +142,8 @@ genrule(
            $(location drake_csd_bridge.py) \
            $(location :pycsdecomp_bindings) $(RULEDIR)/csdecomp/
 
-        # Run stub generation with Bazel's Python
-        # Set RUNFILES_MANIFEST_FILE so the py_binary wrapper can find its dependencies
-        export RUNFILES_MANIFEST_FILE="$$(echo $(locations :generate_stubs) | cut -d' ' -f1).runfiles_manifest"
-        STUBS_SCRIPT="$$(echo $(locations :generate_stubs) | cut -d' ' -f1)"
-        $$STUBS_SCRIPT $(RULEDIR)/csdecomp
+        # Run stub generation using the tool (Bazel handles runfiles for tools)
+        $(execpath :generate_stubs) $(RULEDIR)/csdecomp
     """,
     tools = [":generate_stubs"],
 )
