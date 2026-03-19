@@ -188,7 +188,6 @@ py_wheel(
         "Programming Language :: Python :: 3.12",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
         "Topic :: Scientific/Engineering :: Physics",
-        "Topic :: Scientific/Engineering :: Robotics",
     ],
     summary = "GPU-accelerated configuration space decomposition for robot motion planning",
     description_content_type = "text/markdown",
@@ -206,7 +205,7 @@ py_wheel(
     strip_path_prefixes = [
         "csdecomp/src/pybind/csdecomp",
     ],
-    version = "0.1.1",
+    version = "0.1.2",
     deps = [
         ":csdecomp_package",
     ],
