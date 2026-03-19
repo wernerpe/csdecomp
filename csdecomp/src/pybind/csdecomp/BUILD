@@ -176,7 +176,26 @@ py_package(
 
 py_wheel(
     name = "csdecomp_wheel",
+    author = "Peter Werner",
+    author_email = "wernerpe@mit.edu",
+    classifiers = [
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "Topic :: Scientific/Engineering :: Physics",
+        "Topic :: Scientific/Engineering :: Robotics",
+    ],
+    description = "GPU-accelerated configuration space decomposition for robot motion planning",
+    description_content_type = "text/markdown",
+    description_file = "PYPI_README.md",
     distribution = "csdecomp",
+    homepage = "https://github.com/wernerpe/csdecomp",
+    license = "MIT",
     platform = select({
         "@platforms//os:linux": "manylinux_2_28_x86_64",
     }),
