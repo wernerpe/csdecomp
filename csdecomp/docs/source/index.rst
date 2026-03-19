@@ -8,7 +8,7 @@ Welcome to CSDecomp's Documentation
 Python API Reference
 ------------------
 
-.. automodule:: pycsdecomp
+.. automodule:: csdecomp
    :members:
    :undoc-members:
    :show-inheritance:

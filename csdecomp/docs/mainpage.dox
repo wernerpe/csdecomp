@@ -21,33 +21,30 @@
  * @section requirements System Requirements
  * - CUDA Toolkit (tested with CUDA 12.6)
  * - Compatible NVIDIA display driver (tested with driver 560)
- * - Python 3.10
- * - Ubuntu 22.04 (tested platform)
+ * - Python 3.10, 3.11, or 3.12
+ * - Linux x86_64 (tested on Ubuntu 22.04)
  * - Bazel build system
  * - Clang-format
  *
  * @section install Installation
- * The installation currently requires building from source using Bazel:
- * 
- * 1. Install CUDA toolchain from NVIDIA's website
- * 2. Install required tools:
+ *
+ * From PyPI (recommended):
  * @code{.bash}
- * sudo apt install bazelisk && sudo apt-get install clang-format
+ * pip install csdecomp
  * @endcode
- * 
- * 3. Build and test:
+ *
+ * From source (requires CUDA toolkit and Bazel):
  * @code{.bash}
- * bazel test ...
+ * sudo bash setup.sh
+ * bazel test //...
  * @endcode
- * 
- * @note The build process outputs a pip-installable wheel at 
- * `bazel-bin/csdecomp/src/pybind/pycsdecomp`
+ *
+ * @note The build process outputs a pip-installable wheel at
+ * `bazel-bin/csdecomp/src/pybind/csdecomp/`
  *
  * @section usage Basic Usage
  * @code{.python}
- * import sys
- * sys.path.append('PATH_TO_REPO/bazel-bin/csdecomp/src/pybind/pycsdecomp')
- * import pycsdecomp as csd
+ * import csdecomp as csd
  * @endcode
  *
  * @section citation Citation
@@ -68,7 +65,7 @@
  * - The unit tests demonstrate intended code usage
  * - Python bindings closely follow the C++ syntax
  * - Type hints are available through pystubs
- * - VSCode configuration files are provided for cpp unit test debugging
+ * - Example test scripts serve as integration tests via Bazel
  *
  * @section todo Future Improvements
  * - Improve forward kinematics efficiency

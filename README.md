@@ -46,63 +46,52 @@ To change Python version, edit `tools/my_python_version.bzl` and `MODULE.bazel`.
 The unit tests demonstrate how the code should be used. The Python bindings closely follow the C++ syntax.
 There is experimental documentation that can be built with doxygen: `cd csdecomp/docs/ && doxygen Doxyfile`.
 
-# Running the Python Examples
+## Running the Examples
+
+The examples require [uv](https://docs.astral.sh/uv/getting-started/installation/) for environment management.
 
 ### As a user (using the PyPI package)
 
-1. Install [uv](https://docs.astral.sh/uv/getting-started/installation/)
+```bash
+cd examples
+uv sync
+uv pip install csdecomp
+uv run python minimal_test.py
+```
 
-2. Set up the environment:
-    ```bash
-    cd examples
-    uv sync
-    uv pip install csdecomp
-    ```
-
-3. Run examples:
-    ```bash
-    uv run python minimal_test.py
-    ```
-
-4. For notebooks, select the `.venv` kernel in your editor:
-    ```bash
-    uv run jupyter notebook
-    ```
+For notebooks:
+```bash
+uv run jupyter notebook
+```
+Select the `.venv` kernel in your editor.
 
 ### As a developer (using a locally built wheel)
 
-1. Build the wheel from source:
-    ```bash
-    bazel build //csdecomp/src/pybind/csdecomp:csdecomp_wheel
-    ```
+```bash
+cd examples
+bash dev_install.sh          # builds wheel from source and installs it
+uv run python minimal_test.py
+uv run python test_eizo.py
+uv run python test_drake_bridge.py
+```
 
-2. Install into the examples venv:
-    ```bash
-    cd examples
-    bash dev_install.sh
-    ```
-    This creates the venv (if needed), installs all dependencies, then replaces the PyPI `csdecomp` with your locally built wheel.
+The example tests are also Bazel targets, so `bazel test //...` runs them alongside all other tests.
 
-3. Run examples:
-    ```bash
-    uv run python minimal_test.py
-    uv run python test_eizo.py
-    uv run python test_drake_bridge.py
-    ```
+For notebooks, select the `.venv` kernel in your editor.
 
-    For notebooks, select the `.venv` kernel in your editor.
+## Developing
 
-# Developing
+Run the full test suite (requires GPU):
 
-For interactive debugging of C++ code with plotting, the targets need to depend on the system python. Make sure your system python has matplotlib installed along with the dev headers:
+```bash
+bazel test //...
+```
 
-    `test -f /usr/include/python3.10/Python.h && echo "exists" || echo "not found"`
+CI runs lint and build checks only (no GPU required). Developers with a GPU should run the full suite locally before pushing.
 
-The `cc_test_with_system_python` targets (tagged `manual`) in the test BUILD files demonstrate this setup.
+For interactive debugging of C++ code with plotting, use the `cc_test_with_system_python` targets (tagged `manual`) in the test BUILD files. These require system Python with matplotlib and dev headers installed.
 
-
-
-# Citation
+## Citation
 
 If you find this code useful, please consider citing our paper:
 
@@ -115,33 +104,16 @@ If you find this code useful, please consider citing our paper:
 }
 ```
 
-# Miscellaneous
+## Useful Commands
 
-Random build command lookuptable
+```bash
+bazel build //...                                              # build everything
+bazel build //csdecomp/src/pybind/csdecomp:csdecomp_wheel      # build pip wheel
+bazel test //...                                               # run all tests (requires GPU)
+bazel test //csdecomp/tests:csdecomp_test                      # run Python integration test
+```
 
-`bazel build //...`
-
-`bazel build //csdecomp/src/pybind/csdecomp:csdecomp_wheel`
-
-`bazel test //csdecomp/tests:csdecomp_test`
-
-Using a bashrc approach for adding csdecomp to the python path
-
-`export PYTHONPATH=$(bazel info bazel-bin)/csdecomp/src/pybind/csdecomp:$PYTHONPATH`
-
-Random profilig commands:
-
-`nsys profile bazel-bin/csdecomp/tests/cuda_collision_checker_test`
-
-`sudo $(which ncu) --set full --target-processes all -o tmp/nsightcompute_report bazel-bin/csdecomp/tests/cuda_collision_checker_test`
-
-Drake slow to launch and returning LCM test failed:
-
-```sudo ifconfig lo multicast & sudo route add -net 224.0.0.0 netmask 240.0.0.0 dev lo ```
-
-
-Running list of TODOs
-* Improve forward kinematics efficiency by removing fixed joints from the evaluation and switching to 3x4 representation of the transforms
-* Handle other python versions gracefully
-* Handle cylinder and capsule collision geometries
-* Finish Python documentation using Sphinx
+If Drake is slow to launch (LCM error):
+```bash
+sudo ifconfig lo multicast && sudo route add -net 224.0.0.0 netmask 240.0.0.0 dev lo
+```
