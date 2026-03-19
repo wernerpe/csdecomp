@@ -206,7 +206,7 @@ py_wheel(
     strip_path_prefixes = [
         "csdecomp/src/pybind/csdecomp",
     ],
-    version = "0.1.0",
+    version = "0.1.1",
     deps = [
         ":csdecomp_package",
     ],
