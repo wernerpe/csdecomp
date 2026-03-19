@@ -58,7 +58,7 @@ jobs:
 
       - name: Repair wheel with auditwheel
         run: |
-          pip3 install auditwheel
+          python3 -m pip install auditwheel
           WHEEL=$(find bazel-bin/csdecomp/src/pybind/csdecomp -name "*.whl" | head -1)
           echo "Found wheel: ${WHEEL}"
           auditwheel show "${WHEEL}"
