@@ -380,8 +380,8 @@ void add_cpp_utils_bindings(py::module& m) {
       Find intersections between composite Bezier curve segments and H-polyhedron obstacles.
 
       For each segment of the composite Bezier curve, determines which H-polyhedron
-      obstacles it potentially intersects with. Uses the BezierCurveHPolyhedronCollisionFree 
-      function to check collision status - segments that are NOT collision-free are 
+      obstacles it potentially intersects with. Uses the BezierCurveHPolyhedronCollisionFree
+      function to check collision status - segments that are NOT collision-free are
       considered to intersect.
 
       Parameters
@@ -389,9 +389,9 @@ void add_cpp_utils_bindings(py::module& m) {
       c : CompositeBezierCurve
           The composite Bezier curve to analyze
       As : list of numpy.ndarray
-          Vector of constraint matrices, one for each H-polyhedron 
+          Vector of constraint matrices, one for each H-polyhedron
           (each A_i has shape num_constraints_i x dimension)
-      bs : list of numpy.ndarray  
+      bs : list of numpy.ndarray
           Vector of constraint vectors, one for each H-polyhedron
           (each b_i has shape num_constraints_i x 1)
       hpoly_to_ignore : dict
@@ -412,10 +412,10 @@ void add_cpp_utils_bindings(py::module& m) {
 
       Notes
       -----
-      - An intersection is detected when BezierCurveHPolyhedronCollisionFree returns 
+      - An intersection is detected when BezierCurveHPolyhedronCollisionFree returns
         false, meaning the segment is not proven to be collision-free.
       - Parallelizes over curve segments (recommended when num_obstacles >> num_segments).
-      
+
       Preconditions
       -------------
       - len(As) must equal len(bs)

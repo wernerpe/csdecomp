@@ -34,7 +34,12 @@
       "Bash(find /home/peter/gitcspace/manylinux_experiment/csdecomp -type f \\\\\\(-name *.md -o -name *.txt -o -name *.rst \\\\\\))",
       "Bash(find /home/peter/gitcspace/manylinux_experiment/csdecomp -type f -name README*)",
       "Bash(grep:*)",
-      "Bash(find /home/peter/gitcspace/manylinux_experiment/csdecomp -type f \\\\\\(-name *.dox -o -name *.md -o -name *.rst \\\\\\) ! -path ./.git/* ! -path ./.venv/* ! -path *bazel-bin* ! -path */.venv/*)"
+      "Bash(find /home/peter/gitcspace/manylinux_experiment/csdecomp -type f \\\\\\(-name *.dox -o -name *.md -o -name *.rst \\\\\\) ! -path ./.git/* ! -path ./.venv/* ! -path *bazel-bin* ! -path */.venv/*)",
+      "Bash(gh workflow:*)",
+      "Bash(gh pr:*)",
+      "Bash(git rm:*)",
+      "Bash(git checkout:*)",
+      "Bash(ls:*)"
     ]
   }
 }
