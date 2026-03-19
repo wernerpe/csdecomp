@@ -51,7 +51,7 @@ def densify_waypoints(waypoints_q : list[np.ndarray],
 import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
-import pycsdecomp
+import csdecomp
 
 def write_graph_summary(g: nx.Graph):
     summary = []
@@ -148,7 +148,7 @@ def plot_graph_from_adjacency_list(adj_list, max_nodes = 1000):
 
 
 
-def get_drm_summary(drm : pycsdecomp.DRM, do_plot = False, max_nodes_to_plot = 1000):
+def get_drm_summary(drm : csdecomp.DRM, do_plot = False, max_nodes_to_plot = 1000):
     G = nx.Graph()
 
     # Add edges to the graph

@@ -59,4 +59,6 @@ jobs:
             //csdecomp/src/utils:buildifier_test \
             //csdecomp/src/utils:cpp_lint_test \
             //csdecomp/tests:buildifier_test \
-            //csdecomp/tests:cpp_lint_test
+            //csdecomp/tests:cpp_lint_test \
+            //examples:buildifier_test \
+            //examples:cpp_lint_test

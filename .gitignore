@@ -14,5 +14,6 @@ build/*
 *.nsys*
 *.venv
 *poetry.lock
+*uv.lock
 examples/tmp/*
 *doxyoutput*

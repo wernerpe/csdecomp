@@ -13,7 +13,7 @@ from pydrake.all import (
     RigidTransform
 )
 from cspace_utils.plotting import plot_points, plot_triad
-import pycsdecomp as csd
+import csdecomp as csd
 import numpy as np
 import time
 
@@ -55,7 +55,7 @@ query : QueryObject = scene_graph.get_query_output_port()\
 inspector : SceneGraphInspector = query.inspector()
 meshcat.SetProperty('/drake/proximity', 'visible', True)
 
-csd_plant = csd.convert_drake_plant_to_csd_plant(plant, inspector)
+csd_plant = csd.convert_drake_plant_to_csd_plant(plant, plant_context, inspector)
 
 pl_opts = csd.DrmPlannerOptions()
 pl_opts.max_iterations_steering_to_node = 10

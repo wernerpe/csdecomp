@@ -1,20 +1,17 @@
 import os
 import numpy as np
 
-from pycsdecomp import (URDFParser, 
-                    UniformSampleInHPolyhedraCuda,
-                    )
-from pycsdecomp import (
+from csdecomp import (
     URDFParser,
-    DRM, 
-    RoadmapOptions, 
-    RoadmapBuilder, 
+    DRM,
+    RoadmapOptions,
+    RoadmapBuilder,
     Plant,
     Link,
     KinematicTree,
     UniformSampleInHPolyhedraCuda,
-    HPolyhedron
-    )
+    HPolyhedron,
+)
 
 from utils import CSD_EXAMPLES_ROOT, get_drm_summary
 

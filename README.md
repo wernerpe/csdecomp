@@ -48,16 +48,49 @@ There is experimental documentation that can be built with doxygen: `cd csdecomp
 
 # Running the Python Examples
 
-1. Install poetry `pip install poetry` 
+### As a user (using the PyPI package)
 
-2. Set automatic naming `poetry config virtualenvs.create true; poetry config virtualenvs.in-project true`
+1. Install [uv](https://docs.astral.sh/uv/getting-started/installation/)
 
-3. `cd examples && poetry install`
+2. Set up the environment:
+    ```bash
+    cd examples
+    uv sync
+    uv pip install csdecomp
+    ```
 
-4. Run the exapmles! 
-E.g. `poetry shell && python minimal_test.py`
+3. Run examples:
+    ```bash
+    uv run python minimal_test.py
+    ```
 
-    For the notebooks make sure to select the kernel corresponding to the venv created by poetry. If you are using vscode, you may need to open the examples folder speparately, e.g. `cd examples && code .`, for it to detect and list the kernel automatically.
+4. For notebooks, select the `.venv` kernel in your editor:
+    ```bash
+    uv run jupyter notebook
+    ```
+
+### As a developer (using a locally built wheel)
+
+1. Build the wheel from source:
+    ```bash
+    bazel build //csdecomp/src/pybind/csdecomp:csdecomp_wheel
+    ```
+
+2. Install into the examples venv:
+    ```bash
+    cd examples
+    bash dev_install.sh
+    ```
+    This creates the venv (if needed), installs all dependencies, then replaces the PyPI `csdecomp` with your locally built wheel.
+
+3. Run examples:
+    ```bash
+    uv run python minimal_test.py
+    uv run python test_eizo.py
+    uv run python test_drake_bridge.py
+    ```
+
+    For notebooks, select the `.venv` kernel in your editor.
 
 # Developing
 
