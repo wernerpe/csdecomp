@@ -190,7 +190,7 @@ py_wheel(
         "Topic :: Scientific/Engineering :: Physics",
         "Topic :: Scientific/Engineering :: Robotics",
     ],
-    description = "GPU-accelerated configuration space decomposition for robot motion planning",
+    summary = "GPU-accelerated configuration space decomposition for robot motion planning",
     description_content_type = "text/markdown",
     description_file = "PYPI_README.md",
     distribution = "csdecomp",
