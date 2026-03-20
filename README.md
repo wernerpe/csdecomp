@@ -59,7 +59,6 @@ The examples require [uv](https://docs.astral.sh/uv/getting-started/installation
 ```bash
 cd examples
 uv sync
-uv pip install csdecomp
 uv run python minimal_test.py
 ```
 
