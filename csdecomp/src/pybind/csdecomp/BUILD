@@ -189,7 +189,6 @@ py_wheel(
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
         "Topic :: Scientific/Engineering :: Physics",
     ],
-    summary = "GPU-accelerated configuration space decomposition for robot motion planning",
     description_content_type = "text/markdown",
     description_file = "PYPI_README.md",
     distribution = "csdecomp",
@@ -205,6 +204,7 @@ py_wheel(
     strip_path_prefixes = [
         "csdecomp/src/pybind/csdecomp",
     ],
+    summary = "GPU-accelerated configuration space decomposition for robot motion planning",
     version = "0.1.2",
     deps = [
         ":csdecomp_package",
