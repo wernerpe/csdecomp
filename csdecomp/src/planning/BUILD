@@ -90,6 +90,22 @@ cuda_library(
 )
 
 cuda_library(
+    name = "cuda_plane_update",
+    srcs = ["cuda_plane_update.cu"],
+    hdrs = ["cuda_plane_update.h"],
+    copts = ["-Icsdecomp/src"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":cuda_edge_inflation_zero_order",
+        ":cuda_set_builder_utils",
+        "//csdecomp/src/plant:cuda_collision_checker",
+        "//csdecomp/src/utils:cuda_utilities",
+        "@eigen",
+        "@fmt",
+    ],
+)
+
+cuda_library(
     name = "cuda_edit_regions",
     srcs = ["cuda_edit_regions.cu"],
     hdrs = ["cuda_edit_regions.h"],

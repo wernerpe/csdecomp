@@ -199,6 +199,18 @@ cc_test_with_system_python(
 )
 
 cc_test(
+    name = "cuda_plane_update_test",
+    srcs = ["cuda_plane_update_test.cpp"],
+    copts = ["-Icsdecomp/src"],
+    deps = [
+        "//csdecomp/src/planning:cuda_plane_update",
+        "//csdecomp/src/plant:cuda_collision_checker",
+        "//csdecomp/src/plant:urdf_parser",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
     name = "cuda_edit_regions_test",
     srcs = ["cuda_edit_regions_test.cpp"],
     copts = ["-Icsdecomp/src"],

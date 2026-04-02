@@ -76,6 +76,7 @@ cc_library(
     deps = [
         "//csdecomp/src/geometry:cuda_hit_and_run_sampling",
         "//csdecomp/src/planning:cuda_edit_regions",
+        "//csdecomp/src/planning:cuda_plane_update",
         "//csdecomp/src/planning:cuda_polytope_builder",
         "//csdecomp/src/planning:cuda_visibility_graph",
         "//csdecomp/src/plant:cuda_collision_checker",
