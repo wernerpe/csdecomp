@@ -112,9 +112,6 @@ GTEST_TEST(PlaneUpdateTest, BasicSeparation) {
   }
 
   // Boundary points should be near the actual obstacle boundary
-  // Box half-size = 0.7, center at (±1, ±1), sphere radius = 0.01
-  // Boundary along diagonal from origin to (1,1) is at ~(0.3, 0.3) - 0.01
-  // (distance from origin to edge minus sphere radius)
   for (int i = 0; i < 4; ++i) {
     EXPECT_GT(result.boundary_dists(i), 0.1f)
         << "Boundary dist " << i << " suspiciously small";
@@ -186,7 +183,6 @@ GTEST_TEST(PlaneUpdateTest, Timing) {
   ComputeSeparatingPlanesCuda(feasible, collision, plant,
                               inspector.robot_geometry_ids, vox, 0.0f, options);
 
-  // Timed run (per-call allocation)
   auto start = std::chrono::high_resolution_clock::now();
   const int N_RUNS = 100;
   for (int r = 0; r < N_RUNS; ++r) {
@@ -197,83 +193,11 @@ GTEST_TEST(PlaneUpdateTest, Timing) {
   auto end = std::chrono::high_resolution_clock::now();
   double ms =
       std::chrono::duration<double, std::milli>(end - start).count() / N_RUNS;
-  std::cout << "[Timing] ComputeSeparatingPlanesCuda (alloc): " << ms << " ms ("
-            << M << " points)" << std::endl;
+  std::cout << "[Timing] ComputeSeparatingPlanesCuda: " << ms << " ms (" << M
+            << " points, " << options.bisection_steps << " bisection steps)"
+            << std::endl;
 
   EXPECT_LT(ms, 50.0) << "Too slow";
-}
-
-GTEST_TEST(PlaneUpdateTest, PersistentBasicSeparation) {
-  URDFParser parser;
-  parser.parseURDFString(boxes_in_corners_urdf);
-  MinimalPlant plant = parser.getMinimalPlant();
-  SceneInspector inspector = parser.getSceneInspector();
-
-  PlaneUpdateOptions options;
-  options.bisection_steps = 10;
-  options.configuration_margin = 0.01;
-
-  CudaPlaneUpdater updater(plant, inspector.robot_geometry_ids, options, 100);
-
-  Eigen::MatrixXf feasible(2, 4);
-  Eigen::MatrixXf collision(2, 4);
-  // clang-format off
-  feasible << 0.0, 0.0, 0.0, 0.0,
-              0.0, 0.0, 0.0, 0.0;
-  collision << -1.0,  1.0,  1.0, -1.0,
-                1.0,  1.0, -1.0, -1.0;
-  // clang-format on
-
-  Voxels vox(3, 0);
-  auto result = updater.computePlanes(feasible, collision, vox, 0.0f);
-
-  ASSERT_EQ(result.a.cols(), 4);
-  for (int i = 0; i < 4; ++i) {
-    float val_feas = result.a.col(i).dot(feasible.col(i)) + result.b(i);
-    float val_col = result.a.col(i).dot(collision.col(i)) + result.b(i);
-    EXPECT_LT(val_feas, 0.0f) << "Plane " << i << " fails feasible";
-    EXPECT_GT(val_col, 0.0f) << "Plane " << i << " fails collision";
-  }
-}
-
-GTEST_TEST(PlaneUpdateTest, PersistentTiming) {
-  URDFParser parser;
-  parser.parseURDFString(boxes_in_corners_urdf);
-  MinimalPlant plant = parser.getMinimalPlant();
-  SceneInspector inspector = parser.getSceneInspector();
-
-  const int M = 1000;
-  Eigen::MatrixXf feasible = Eigen::MatrixXf::Zero(2, M);
-  Eigen::MatrixXf collision(2, M);
-
-  for (int i = 0; i < M; ++i) {
-    float angle = 2.0f * M_PI * i / M;
-    collision(0, i) = 1.2f * cos(angle);
-    collision(1, i) = 1.2f * sin(angle);
-  }
-
-  PlaneUpdateOptions options;
-  options.bisection_steps = 10;
-  options.configuration_margin = 0.01;
-  Voxels vox(3, 0);
-
-  CudaPlaneUpdater updater(plant, inspector.robot_geometry_ids, options, M);
-
-  // Warmup
-  updater.computePlanes(feasible, collision, vox, 0.0f);
-
-  auto start = std::chrono::high_resolution_clock::now();
-  const int N_RUNS = 100;
-  for (int r = 0; r < N_RUNS; ++r) {
-    updater.computePlanes(feasible, collision, vox, 0.0f);
-  }
-  auto end = std::chrono::high_resolution_clock::now();
-  double ms_persistent =
-      std::chrono::duration<double, std::milli>(end - start).count() / N_RUNS;
-  std::cout << "[Timing] CudaPlaneUpdater (persistent): " << ms_persistent
-            << " ms (" << M << " points)" << std::endl;
-
-  EXPECT_LT(ms_persistent, 50.0) << "Persistent too slow";
 }
 
 int main(int argc, char** argv) {

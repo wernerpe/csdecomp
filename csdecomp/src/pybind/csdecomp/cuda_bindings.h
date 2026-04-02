@@ -177,34 +177,6 @@ void add_cuda_bindings(py::module &m) {
         PlaneUpdateResult: Planes (a, b), boundary points, and distances.
     )pbdoc");
 
-  py::class_<CudaPlaneUpdater>(m, "CudaPlaneUpdater")
-      .def(py::init<const MinimalPlant &, const std::vector<GeometryIndex> &,
-                    const PlaneUpdateOptions &, int, int>(),
-           py::arg("plant"), py::arg("robot_geometry_ids"), py::arg("options"),
-           py::arg("max_num_points"), py::arg("max_num_voxels") = 0)
-      .def(
-          "computePlanes",
-          [](CudaPlaneUpdater &self, const Eigen::MatrixXf &feasible_points,
-             const Eigen::MatrixXf &collision_points,
-             const VoxelsWrapper &voxels, float voxel_radius) {
-            return self.computePlanes(feasible_points, collision_points,
-                                      voxels.matrix, voxel_radius);
-          },
-          py::arg("feasible_points"), py::arg("collision_points"),
-          py::arg("voxels"), py::arg("voxel_radius"),
-          R"pbdoc(
-    Compute separating planes using pre-allocated GPU memory.
-
-    Args:
-        feasible_points (numpy.ndarray): ndof x M feasible configurations.
-        collision_points (numpy.ndarray): ndof x M collision configurations.
-        voxels (Voxels): Voxel map (pass empty for no voxels).
-        voxel_radius (float): Voxel sphere radius.
-
-    Returns:
-        PlaneUpdateResult: Planes (a, b), boundary points, and distances.
-    )pbdoc");
-
   py::class_<EditRegionsOptions>(m, "EditRegionsOptions")
       .def(py::init<>())
       .def_readwrite("configuration_margin",
