@@ -184,6 +184,22 @@ void add_cuda_bindings(py::module &m) {
       .def_readwrite("bisection_steps", &EditRegionsOptions::bisection_steps)
       .def_readwrite("verbose", &EditRegionsOptions::verbose);
 
+  py::class_<EditRegionsTiming>(m, "EditRegionsTiming")
+      .def_readonly("t_reorder", &EditRegionsTiming::t_reorder)
+      .def_readonly("t_gpu_alloc", &EditRegionsTiming::t_gpu_alloc)
+      .def_readonly("t_bisection", &EditRegionsTiming::t_bisection)
+      .def_readonly("t_copy_back", &EditRegionsTiming::t_copy_back)
+      .def_readonly("t_region_build", &EditRegionsTiming::t_region_build);
+
+  py::class_<EditRegionsResult>(m, "EditRegionsResult")
+      .def_readonly("regions", &EditRegionsResult::regions)
+      .def_readonly("projections", &EditRegionsResult::projections)
+      .def_readonly("optimized_collisions",
+                    &EditRegionsResult::optimized_collisions)
+      .def_readonly("active_collision_indices",
+                    &EditRegionsResult::active_collision_indices)
+      .def_readonly("timing", &EditRegionsResult::timing);
+
   m.def(
       "EditRegionsCuda",
       [](const Eigen::MatrixXf &collisions,
@@ -206,9 +222,9 @@ void add_cuda_bindings(py::module &m) {
       R"pbdoc(
     Refines convex regions by removing collisions detected in trajectories.
 
-    This function implements the recovery mechanism from "Superfast Configuration-Space Convex Set 
-    Computation on GPUs for Online Motion Planning". It takes colliding configurations found in 
-    trajectories and modifies the corresponding convex sets to exclude these collisions while 
+    This function implements the recovery mechanism from "Superfast Configuration-Space Convex Set
+    Computation on GPUs for Online Motion Planning". It takes colliding configurations found in
+    trajectories and modifies the corresponding convex sets to exclude these collisions while
     ensuring that line segments remain contained in the sets.
 
     Args:
@@ -224,8 +240,10 @@ void add_cuda_bindings(py::module &m) {
         options (EditRegionsOptions): Configuration options for the region editing process.
 
     Returns:
-        tuple: A tuple containing:
-            - List[HPolyhedron]: Refined convex regions with collisions removed.
-            - tuple: A pair of matrices containing any line segments that needed to be re-inflated.
+        EditRegionsResult: Result containing:
+            - regions (List[HPolyhedron]): Refined convex regions with collisions removed.
+            - projections (numpy.ndarray): Projections of collisions onto line segments.
+            - optimized_collisions (numpy.ndarray): Boundary points from bisection.
+            - active_collision_indices (List[int]): Indices (into the input collisions) of collisions that actually produced hyperplanes.
     )pbdoc");
 }

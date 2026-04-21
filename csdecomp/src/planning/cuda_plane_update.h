@@ -10,8 +10,8 @@
 namespace csdecomp {
 
 struct PlaneUpdateOptions {
-  float configuration_margin{0.01};
-  uint32_t bisection_steps{10};
+  float configuration_margin{0.03};
+  uint32_t bisection_steps{8};
 };
 
 struct PlaneUpdateResult {

@@ -54,15 +54,29 @@ struct EditRegionsOptions {
  *           re-inflated (start points and end points)
  */
 
-std::pair<std::vector<HPolyhedron>, std::pair<Eigen::MatrixXf, Eigen::MatrixXf>>
-EditRegionsCuda(const Eigen::MatrixXf& collisions,
-                const std::vector<u_int32_t>& line_segment_idxs,
-                const Eigen::MatrixXf& line_start_points,
-                const Eigen::MatrixXf& line_end_points,
-                const std::vector<HPolyhedron> regions,
-                const MinimalPlant& plant,
-                const std::vector<GeometryIndex>& robot_geometry_ids,
-                const Voxels& voxels, const float voxel_radius,
-                const EditRegionsOptions& options);
+struct EditRegionsTiming {
+  float t_reorder{0};
+  float t_gpu_alloc{0};
+  float t_bisection{0};
+  float t_copy_back{0};
+  float t_region_build{0};
+};
+
+struct EditRegionsResult {
+  std::vector<HPolyhedron> regions;
+  Eigen::MatrixXf projections;
+  Eigen::MatrixXf optimized_collisions;
+  std::vector<u_int32_t> active_collision_indices;
+  EditRegionsTiming timing;
+};
+
+EditRegionsResult EditRegionsCuda(
+    const Eigen::MatrixXf& collisions,
+    const std::vector<u_int32_t>& line_segment_idxs,
+    const Eigen::MatrixXf& line_start_points,
+    const Eigen::MatrixXf& line_end_points,
+    const std::vector<HPolyhedron> regions, const MinimalPlant& plant,
+    const std::vector<GeometryIndex>& robot_geometry_ids, const Voxels& voxels,
+    const float voxel_radius, const EditRegionsOptions& options);
 
 }  // namespace csdecomp

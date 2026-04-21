@@ -130,10 +130,10 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
   auto result = EditRegionsCuda(
       repeated_collisions, line_segment_idxs, line_start, line_end, regions,
       plant, inspector.robot_geometry_ids, vox, voxel_radius, options);
-  Eigen::MatrixXf projections = result.second.first;
-  Eigen::MatrixXf opt = result.second.second;
+  Eigen::MatrixXf projections = result.projections;
+  Eigen::MatrixXf opt = result.optimized_collisions;
 
-  auto regions_edited = result.first;
+  auto regions_edited = result.regions;
   int region_idx = 0;
   for (const auto& r : regions_edited) {
     EXPECT_TRUE(r.PointInSet(line_start.col(region_idx)));
@@ -214,7 +214,7 @@ GTEST_TEST(PolytopeBuilderTest, TWODEnvTestWithPlotting0) {
   auto result2 = EditRegionsCuda(
       repeated_collisions, line_segment_idxs, line_start, line_end, regions,
       plant, inspector.robot_geometry_ids, vox, voxel_radius, options);
-  Eigen::MatrixXf optimized_collisions = result2.second.second;
+  Eigen::MatrixXf optimized_collisions = result2.optimized_collisions;
   float diff = (optimized_collisions.col(1) - collisions.col(1)).norm();
   EXPECT_LE(diff, 1e-6);
 }

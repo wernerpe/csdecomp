@@ -57,7 +57,7 @@ class RegionCorrector:
                                      voxel_radius,
                                      self.options)
         #convert to drake regions
-        regions_drake = [HPolyhedron(r.A(), r.b()) for r in result[0]]
+        regions_drake = [HPolyhedron(r.A(), r.b()) for r in result.regions]
         return regions_drake
     
 def MintimeSCSWithPathFixing(start : np.ndarray,

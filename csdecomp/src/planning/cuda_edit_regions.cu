@@ -1,6 +1,7 @@
 #include <fmt/core.h>
 
 #include <algorithm>
+#include <chrono>
 #include <numeric>
 #include <vector>
 
@@ -41,16 +42,14 @@ std::vector<size_t> argsort_slice(const float* arr, size_t start, size_t end) {
 }
 }  // namespace
 
-std::pair<std::vector<HPolyhedron>, std::pair<Eigen::MatrixXf, Eigen::MatrixXf>>
-EditRegionsCuda(const Eigen::MatrixXf& collisions,
-                const std::vector<u_int32_t>& line_segment_idxs,
-                const Eigen::MatrixXf& line_start_points,
-                const Eigen::MatrixXf& line_end_points,
-                const std::vector<HPolyhedron> regions,
-                const MinimalPlant& plant,
-                const std::vector<GeometryIndex>& robot_geometry_ids,
-                const Voxels& voxels, const float voxel_radius,
-                const EditRegionsOptions& options) {
+EditRegionsResult EditRegionsCuda(
+    const Eigen::MatrixXf& collisions,
+    const std::vector<u_int32_t>& line_segment_idxs,
+    const Eigen::MatrixXf& line_start_points,
+    const Eigen::MatrixXf& line_end_points,
+    const std::vector<HPolyhedron> regions, const MinimalPlant& plant,
+    const std::vector<GeometryIndex>& robot_geometry_ids, const Voxels& voxels,
+    const float voxel_radius, const EditRegionsOptions& options) {
   // Check that problem data makes sense -> edges, regions, dimensions
   assert(line_start_points.cols() == regions.size() &&
          "Number of line segments must match number of regions");
@@ -83,6 +82,8 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
 
   const int dimension = regions.at(0).ambient_dimension();
 
+  auto t0 = std::chrono::high_resolution_clock::now();
+
   // sort collisions by line segment index
   std::vector<u_int32_t> num_col_per_ls(regions.size(), 0);
   std::vector<u_int32_t> cum_sum_num_col_per_ls(regions.size(), 0);
@@ -96,17 +97,22 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
   int num_traj_collisions = collisions.cols();
   Eigen::MatrixXf collisions_reordered(dimension, num_traj_collisions);
   std::vector<u_int32_t> line_segment_idxs_reordered(num_traj_collisions, 0);
+  // Reverse mapping: reordered index -> original input index
+  std::vector<u_int32_t> reordered_to_original(num_traj_collisions, 0);
   Eigen::VectorXf curr_count(regions.size());
   curr_count.setZero();
   for (int collision_idx = 0; collision_idx < num_traj_collisions;
        ++collision_idx) {
     u_int32_t ls_id = line_segment_idxs.at(collision_idx);
     u_int32_t base_id = cum_sum_num_col_per_ls.at(ls_id);
-    collisions_reordered.col(base_id + curr_count(ls_id)) =
-        collisions.col(collision_idx);
-    line_segment_idxs_reordered.at(base_id + curr_count(ls_id)) = ls_id;
+    u_int32_t reordered_idx = base_id + curr_count(ls_id);
+    collisions_reordered.col(reordered_idx) = collisions.col(collision_idx);
+    line_segment_idxs_reordered.at(reordered_idx) = ls_id;
+    reordered_to_original.at(reordered_idx) = collision_idx;
     curr_count(ls_id) += 1;
   }
+
+  auto t1 = std::chrono::high_resolution_clock::now();
 
   if (options.verbose) {
     std::cout << fmt::format(
@@ -174,6 +180,9 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
   robot_geometry_ids_ptr.copyHostToDevice();
   plant_ptr.copyHostToDevice();
 
+  cudaDeviceSynchronize();
+  auto t2 = std::chrono::high_resolution_clock::now();
+
   executeProjectSamplesOntoLineSegmentsKernel(
       distances_buffer.device, projections_buffer.device, samples_ptr.device,
       line_start_pts_ptr.device, line_end_pts_ptr.device,
@@ -228,11 +237,17 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
       distances_buffer.device, optimized_collisions_buffer.device,
       projections_buffer.device, num_traj_collisions, dimension);
 
+  cudaDeviceSynchronize();
+  auto t3 = std::chrono::high_resolution_clock::now();
+
   optimized_collisions_buffer.copyDeviceToHost();
   projections_buffer.copyDeviceToHost();
   distances_buffer.copyDeviceToHost();
 
+  auto t4 = std::chrono::high_resolution_clock::now();
+
   std::vector<HPolyhedron> edited_regions;
+  std::vector<u_int32_t> active_collision_indices;
   int region_idx = 0;
   int curr_coll_idx = 0;
   for (const auto r : regions) {
@@ -259,6 +274,7 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
 
         // only add face if the optimized collision is contained in the region.
         if (is_opt_contained) {
+          active_collision_indices.push_back(reordered_to_original.at(cand));
           Eigen::VectorXf proj = projections.col(cand);
           Eigen::VectorXf a_face = opt - proj;
           a_face.normalize();
@@ -296,7 +312,17 @@ EditRegionsCuda(const Eigen::MatrixXf& collisions,
     ++region_idx;
   }
 
-  return {edited_regions, {projections, optimized_collisions}};
+  auto t5 = std::chrono::high_resolution_clock::now();
+
+  auto to_sec = [](auto start, auto end) {
+    return std::chrono::duration<float>(end - start).count();
+  };
+
+  EditRegionsTiming timing{to_sec(t0, t1), to_sec(t1, t2), to_sec(t2, t3),
+                           to_sec(t3, t4), to_sec(t4, t5)};
+
+  return {edited_regions, projections, optimized_collisions,
+          active_collision_indices, timing};
 }
 
 }  // namespace csdecomp
